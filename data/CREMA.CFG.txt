@@ -1,0 +1,5 @@
+#Arquivo de configuração do CREMA
+Registro=20180623
+Nome=Cristiano
+CREMA_ID=esp_bh
+Token=A1E-nuWgdhFqYZUQAIqItVXN67ssBhtJYV

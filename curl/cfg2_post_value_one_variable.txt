@@ -1,0 +1,4 @@
+request = POST 
+header = "Content-Type: application/json" 
+data-ascii = {"value":11.21,"context":{"lat":1.12,"lng":2.019},"timestamp":1000199992}
+url = http://things.ubidots.com/api/v1.6/devices/testecurl/var_tt?token=A1E-nuWgdhFqYZUQAIqItVXN67ssBhtJYV

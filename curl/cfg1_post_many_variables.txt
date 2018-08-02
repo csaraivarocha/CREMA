@@ -1,0 +1,4 @@
+request = POST 
+header = "Content-Type: application/json" 
+data-ascii = {"temperature":10,"luminosity":{"value":10},"wind_speed":[{"value":11,"timestamp":10000},{"value":12,"timestamp":13000}]}
+url = http://things.ubidots.com/api/v1.6/devices/testecurl?token=A1E-nuWgdhFqYZUQAIqItVXN67ssBhtJYV

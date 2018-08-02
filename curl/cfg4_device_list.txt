@@ -1,0 +1,3 @@
+request = GET
+#header = "Content-Type: application/json" 
+url=http://things.ubidots.com/api/v1.6/datasource/?token=A1E-nuWgdhFqYZUQAIqItVXN67ssBhtJYV

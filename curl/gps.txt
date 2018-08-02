@@ -1,0 +1,4 @@
+request = POST
+header = "Content-Type: application/json" 
+data-ascii={"temperatura":{"value":10,"context":{"lat":-19.648461,"lng":-43.901583}}}
+url = http://things.ubidots.com/api/v1.6/devices/esp32_bh?token=A1E-nuWgdhFqYZUQAIqItVXN67ssBhtJYV
