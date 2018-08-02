@@ -33,7 +33,7 @@ Addr - Dispositivo
 #include <stdio.h>
 #include "sdkconfig.h"
 
-#define I2C_interruptPin 10  //definir o pino real quando da implementação
+#define I2C_interruptPin   // 10  //definir o pino real quando da implementação
 
 void crema_I2C_config() {
 	pinMode(I2C_interruptPin, INPUT);
