@@ -34,9 +34,6 @@
     <ClInclude Include="cremaIoT.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cremaLog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="cremaPinos.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -64,9 +61,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="cremaIoT.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cremaLog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="cremaSensor.cpp">
