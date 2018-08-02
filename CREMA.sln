@@ -5,7 +5,73 @@ VisualStudioVersion = 15.0.27703.2042
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CREMA", "CREMA.vcxproj", "{C5F80730-F44F-4478-BDAE-6634EFC2CA88}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Esp32-Nokia-5110-Interfacing-and-NTP-Sync-IST-Digital-Clock-master", "..\..\..\..\Arduino\libraries\Esp32-Nokia-5110-Interfacing-and-NTP-Sync-IST-Digital-Clock-master\Esp32-Nokia-5110-Interfacing-and-NTP-Sync-IST-Digital-Clock-master.vcxitems", "{BB06E60B-7525-401E-8A53-C00DB4EFCDCA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FS", "..\..\..\..\Arduino\hardware\espressif\esp32\libraries\FS\FS.vcxitems", "{4F2E8ADE-DB82-4D91-812B-64C5EC4DDE09}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPIFFS", "..\..\..\..\Arduino\hardware\espressif\esp32\libraries\SPIFFS\SPIFFS.vcxitems", "{F486BD8E-E675-4325-A300-D9CF3DB85C47}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoJson-master", "..\..\..\..\Arduino\libraries\ArduinoJson-master\ArduinoJson-master.vcxitems", "{962B64D5-F59B-4595-88CC-57F63D371661}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RTClib-master", "..\..\..\..\Arduino\libraries\RTClib-master\RTClib-master.vcxitems", "{DF87C716-4F6D-4264-AE75-283CB66D1632}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Wire", "..\..\..\..\Arduino\hardware\espressif\esp32\libraries\Wire\Wire.vcxitems", "{A8AAA0B2-6775-4124-8E8A-300EA840370A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BH1750-master", "..\..\..\..\Arduino\libraries\BH1750-master\BH1750-master.vcxitems", "{1D06A987-3AA5-4982-9765-30F16528DAA4}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BME280-I2C-ESP32-master", "..\..\..\..\Arduino\libraries\BME280-I2C-ESP32-master\BME280-I2C-ESP32-master.vcxitems", "{74FF5401-1E59-4E6F-8978-25629A4CD134}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPI", "..\..\..\..\Arduino\hardware\espressif\esp32\libraries\SPI\SPI.vcxitems", "{46939624-7328-43C6-9104-9FBAC946A22D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TinyGPSPlus-1.0.2", "..\..\..\..\Arduino\libraries\TinyGPSPlus-1.0.2\TinyGPSPlus-1.0.2.vcxitems", "{25C5AF5B-95E9-4533-8937-25EB21FF7C5F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DNSServer", "..\..\..\..\Arduino\hardware\espressif\esp32\libraries\DNSServer\DNSServer.vcxitems", "{AC920724-B1CF-49A4-874C-E20F5DF2EFE0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WebServer-esp32-master", "..\..\..\..\Arduino\libraries\WebServer-esp32-master\WebServer-esp32-master.vcxitems", "{3DB1B5C0-2FBD-4AE8-9DC6-834BE7ECB7F2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WIFIMANAGER-ESP32-master", "..\..\..\..\Arduino\libraries\WIFIMANAGER-ESP32-master\WIFIMANAGER-ESP32-master.vcxitems", "{C0F031DD-D2FC-4C50-8568-4900234573A2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HTTPClient", "..\..\..\..\Arduino\hardware\espressif\esp32\libraries\HTTPClient\HTTPClient.vcxitems", "{52D2AFDE-7D57-4136-82DF-0F9942A3020B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WiFiClientSecure", "..\..\..\..\Arduino\hardware\espressif\esp32\libraries\WiFiClientSecure\WiFiClientSecure.vcxitems", "{055AA2EB-1089-4630-B439-FB5C5575C9E7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WiFi", "..\..\..\..\Arduino\hardware\espressif\esp32\libraries\WiFi\WiFi.vcxitems", "{482E2DEC-1A5C-4D45-9C2F-5A87D5740ECB}"
+EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\..\..\..\Arduino\hardware\espressif\esp32\libraries\WiFiClientSecure\WiFiClientSecure.vcxitems*{055aa2eb-1089-4630-b439-fb5c5575c9e7}*SharedItemsImports = 9
+		..\..\..\..\Arduino\libraries\BH1750-master\BH1750-master.vcxitems*{1d06a987-3aa5-4982-9765-30f16528daa4}*SharedItemsImports = 9
+		..\..\..\..\Arduino\libraries\TinyGPSPlus-1.0.2\TinyGPSPlus-1.0.2.vcxitems*{25c5af5b-95e9-4533-8937-25eb21ff7c5f}*SharedItemsImports = 9
+		..\..\..\..\Arduino\libraries\WebServer-esp32-master\WebServer-esp32-master.vcxitems*{3db1b5c0-2fbd-4ae8-9dc6-834be7ecb7f2}*SharedItemsImports = 9
+		..\..\..\..\Arduino\hardware\espressif\esp32\libraries\SPI\SPI.vcxitems*{46939624-7328-43c6-9104-9fbac946a22d}*SharedItemsImports = 9
+		..\..\..\..\Arduino\hardware\espressif\esp32\libraries\WiFi\WiFi.vcxitems*{482e2dec-1a5c-4d45-9c2f-5a87d5740ecb}*SharedItemsImports = 9
+		..\..\..\..\Arduino\hardware\espressif\esp32\libraries\FS\FS.vcxitems*{4f2e8ade-db82-4d91-812b-64c5ec4dde09}*SharedItemsImports = 9
+		..\..\..\..\Arduino\hardware\espressif\esp32\libraries\HTTPClient\HTTPClient.vcxitems*{52d2afde-7d57-4136-82df-0f9942a3020b}*SharedItemsImports = 9
+		..\..\..\..\Arduino\libraries\BME280-I2C-ESP32-master\BME280-I2C-ESP32-master.vcxitems*{74ff5401-1e59-4e6f-8978-25629a4cd134}*SharedItemsImports = 9
+		..\..\..\..\Arduino\libraries\ArduinoJson-master\ArduinoJson-master.vcxitems*{962b64d5-f59b-4595-88cc-57f63d371661}*SharedItemsImports = 9
+		..\..\..\..\Arduino\hardware\espressif\esp32\libraries\Wire\Wire.vcxitems*{a8aaa0b2-6775-4124-8e8a-300ea840370a}*SharedItemsImports = 9
+		..\..\..\..\Arduino\hardware\espressif\esp32\libraries\DNSServer\DNSServer.vcxitems*{ac920724-b1cf-49a4-874c-e20f5df2efe0}*SharedItemsImports = 9
+		..\..\..\..\Arduino\libraries\Esp32-Nokia-5110-Interfacing-and-NTP-Sync-IST-Digital-Clock-master\Esp32-Nokia-5110-Interfacing-and-NTP-Sync-IST-Digital-Clock-master.vcxitems*{bb06e60b-7525-401e-8a53-c00db4efcdca}*SharedItemsImports = 9
+		..\..\..\..\Arduino\libraries\WIFIMANAGER-ESP32-master\WIFIMANAGER-ESP32-master.vcxitems*{c0f031dd-d2fc-4c50-8568-4900234573a2}*SharedItemsImports = 9
+		..\..\..\..\Arduino\hardware\espressif\esp32\libraries\DNSServer\DNSServer.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		..\..\..\..\Arduino\hardware\espressif\esp32\libraries\FS\FS.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		..\..\..\..\Arduino\hardware\espressif\esp32\libraries\HTTPClient\HTTPClient.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		..\..\..\..\Arduino\hardware\espressif\esp32\libraries\SPIFFS\SPIFFS.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		..\..\..\..\Arduino\hardware\espressif\esp32\libraries\SPI\SPI.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		..\..\..\..\Arduino\hardware\espressif\esp32\libraries\WiFiClientSecure\WiFiClientSecure.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		..\..\..\..\Arduino\hardware\espressif\esp32\libraries\WiFi\WiFi.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		..\..\..\..\Arduino\hardware\espressif\esp32\libraries\Wire\Wire.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		..\..\..\..\Arduino\libraries\ArduinoJson-master\ArduinoJson-master.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		..\..\..\..\Arduino\libraries\BH1750-master\BH1750-master.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		..\..\..\..\Arduino\libraries\BME280-I2C-ESP32-master\BME280-I2C-ESP32-master.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		..\..\..\..\Arduino\libraries\Esp32-Nokia-5110-Interfacing-and-NTP-Sync-IST-Digital-Clock-master\Esp32-Nokia-5110-Interfacing-and-NTP-Sync-IST-Digital-Clock-master.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		..\..\..\..\Arduino\libraries\RTClib-master\RTClib-master.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		..\..\..\..\Arduino\libraries\TinyGPSPlus-1.0.2\TinyGPSPlus-1.0.2.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		..\..\..\..\Arduino\libraries\WebServer-esp32-master\WebServer-esp32-master.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		..\..\..\..\Arduino\libraries\WIFIMANAGER-ESP32-master\WIFIMANAGER-ESP32-master.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		..\..\..\..\Arduino\libraries\RTClib-master\RTClib-master.vcxitems*{df87c716-4f6d-4264-ae75-283cb66d1632}*SharedItemsImports = 9
+		..\..\..\..\Arduino\hardware\espressif\esp32\libraries\SPIFFS\SPIFFS.vcxitems*{f486bd8e-e675-4325-a300-d9cf3db85c47}*SharedItemsImports = 9
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
 		Release|x86 = Release|x86

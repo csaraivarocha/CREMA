@@ -261,7 +261,7 @@ __pycache__/
 *.pyc
 
 # Visual Micro for arduino
-Release/*.*
-__vm/*.*
 Release/
 __vm/
+*.vcxproj.*
+*.vcxproj

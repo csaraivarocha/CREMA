@@ -16,7 +16,7 @@
 	#include "WProgram.h"
 #endif
 
-#include <RTClib.h>
+#include "RTClib.h"
 
 typedef enum cremaActions {
 	caShowSensorValues,
