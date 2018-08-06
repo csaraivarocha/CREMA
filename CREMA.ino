@@ -20,5 +20,4 @@ void loop()
 	crema.ReadSensors();
 	crema.ShowSensorValues();
 	crema.UploadSensorValues();
-	//crema.Restart();
 }

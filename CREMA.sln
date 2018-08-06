@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2042
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CREMA", "CREMA.vcxproj", "{C5F80730-F44F-4478-BDAE-6634EFC2CA88}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Esp32-Nokia-5110-Interfacing-and-NTP-Sync-IST-Digital-Clock-master", "..\..\..\..\Arduino\libraries\Esp32-Nokia-5110-Interfacing-and-NTP-Sync-IST-Digital-Clock-master\Esp32-Nokia-5110-Interfacing-and-NTP-Sync-IST-Digital-Clock-master.vcxitems", "{BB06E60B-7525-401E-8A53-C00DB4EFCDCA}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FS", "..\..\..\..\Arduino\hardware\espressif\esp32\libraries\FS\FS.vcxitems", "{4F2E8ADE-DB82-4D91-812B-64C5EC4DDE09}"
@@ -36,6 +34,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WiFiClientSecure", "..\..\..\..\Arduino\hardware\espressif\esp32\libraries\WiFiClientSecure\WiFiClientSecure.vcxitems", "{055AA2EB-1089-4630-B439-FB5C5575C9E7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WiFi", "..\..\..\..\Arduino\hardware\espressif\esp32\libraries\WiFi\WiFi.vcxitems", "{482E2DEC-1A5C-4D45-9C2F-5A87D5740ECB}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CREMA", "CREMA.vcxproj", "{C5F80730-F44F-4478-BDAE-6634EFC2CA88}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution

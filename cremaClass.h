@@ -9,12 +9,10 @@
 	#include "WProgram.h"
 #endif
 
-#include "cremaSerial.h"
 #include "cremaTime.h"
 #include "cremaVisor.h"
 #include "cremaSensor.h"
 #include "cremaWIFI.h"
-#include "cremaIoT.h"
 #include "cremaConfig.h"
 
 #include "cremaErr.h"
@@ -29,6 +27,8 @@ protected:
 	void _readGPS();
 	void _testGPSSignal();
 	void _sayDate();
+	void _uploadErrorLog(const int error, const bool restart, const bool saveConfig);
+	void _uploadToCloud(const cremaSensorsId first, const cremaSensorsId last);
 public:
 	void init();
 	void treatLastError();
@@ -37,9 +37,9 @@ public:
 	void ReadSensors();
 	void doGPS();
 	void UploadSensorValues();
-	void Restart(const bool force = false);
+	void Restart();
+	void displayConfigMode();
 	cremaSensorClass *sensor;
-	cremaSerialClass *serial;
 	cremaTimeClass *time;
 	cremaVisorClass *visor;
 	cremaWiFiClass *wifi;

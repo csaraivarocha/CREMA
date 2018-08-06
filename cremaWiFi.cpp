@@ -4,18 +4,18 @@
 
 //callback que indica que o ESP entrou no modo AP
 void configModeCallback(WiFiManager *myWiFiManager) {
-	//  cremaSerial.println("Entered config mode");
-	crema.serial->println("Entrou no modo de configuracao");
-	crema.serial->println(WiFi.softAPIP().toString()); //imprime o IP do AP
-	crema.serial->println(myWiFiManager->getConfigPortalSSID()); //imprime o SSID criado da rede
-	crema.wifi->displayConfigMode();
-	crema.wifi->webServerConfigSaved = false;
+	//  Serial.println("Entered config mode");
+	Serial.println("Entrou no modo de configuracao");
+	Serial.println(WiFi.softAPIP().toString()); //imprime o IP do AP
+	Serial.println(myWiFiManager->getConfigPortalSSID()); //imprime o SSID criado da rede
+	crema.displayConfigMode();
+	g_webServerConfigSaved = false;
 }
 
 void saveConfigCallback() {
-	crema.serial->println("Configuracao salva");
-	crema.serial->println(WiFi.softAPIP().toString()); //imprime o IP do AP
-	crema.wifi->webServerConfigSaved = true;
+	Serial.println("Configuracao salva");
+	Serial.println(WiFi.softAPIP().toString()); //imprime o IP do AP
+	g_webServerConfigSaved = true;
 }
 
 
@@ -94,7 +94,8 @@ bool cremaWiFiClass::autoConnect(cremaConfigClass * config)
 		}
 		startWebServer();
 
-		if (crema.wifi->webServerConfigSaved)
+		// todo: utilizar variável global
+		if (g_webServerConfigSaved)
 		{
 			for (size_t i = 0; i < ccCount; i++)
 			{
@@ -119,7 +120,7 @@ bool cremaWiFiClass::autoConnect(cremaConfigClass * config)
 	}
 	else
 	{
-		crema.serial->print("\nConectando ao ultimo WiFi\n");
+		Serial.print("\nConectando ao ultimo WiFi\n");
 
 		crema.visor->clearLine(2);
 		crema.visor->write("Conectando");
@@ -135,19 +136,10 @@ bool cremaWiFiClass::autoConnect(cremaConfigClass * config)
 	crema.visor->clear();
 }
 
-void cremaWiFiClass::displayConfigMode() {
-	crema.visor->showMessage("_CONFIGURACAO_");
-	crema.visor->clearLine(1);
-	crema.visor->clearLine(2); crema.visor->write("Conect. a rede");
-	crema.visor->clearLine(3); crema.visor->write("   \""); crema.visor->write(_CREMA_SSID_AP); crema.visor->write("\"");
-	crema.visor->clearLine(4); crema.visor->write("pelo computador");
-	crema.visor->clearLine(5); crema.visor->write("ou celular");
-}
-
 bool cremaWiFiClass::startWebServer()
 {
 	if (!_wifiManager.startConfigPortal(_CREMA_SSID_AP)) {
-		ESP.restart();
+		crema.Restart();
 	}
 	crema.visor->clear();
 

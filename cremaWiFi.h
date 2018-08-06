@@ -44,10 +44,10 @@ public:
 	cremaWiFiClass();
 	~cremaWiFiClass();
 	bool autoConnect(cremaConfigClass * Config);
-	void displayConfigMode();
 	bool startWebServer();
 	bool connected();
-	bool webServerConfigSaved = false;
 };
+
+static bool g_webServerConfigSaved = false;
 
 #endif

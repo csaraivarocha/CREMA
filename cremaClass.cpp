@@ -4,24 +4,19 @@
 
 #include "cremaClass.h"
 
-/*
-void ___ubidots_callback(char* topic, byte* payload, unsigned int length) {
-	crema.serial->print("\nMensagem recebida [");
-	crema.serial->print(topic);
-	crema.serial->print("] ");
-	for (int i = 0; i<length; i++) {
-		crema.serial->print((char)payload[i]);
-	}
-}
-*/
-
 void cremaClass::init()
 {
+	Serial.begin(115200);
+
 	visor->showMessage(F("Inicializando"));
 	config->init();        // config.init tem que ser antes. para ler as configurações do arquivo
 	wifi->autoConnect(config);
 	treatLastError();
-	sensor->readSensors();
+	if (!sensor->init())
+	{
+		_uploadErrorLog(_ERR_SENSOR_INIT, _ERR_UPLOAD_LOG_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
+	}
+
 	visor->clear();
 
 	Serial_GPS.flush();
@@ -49,12 +44,12 @@ void cremaClass::treatLastError()
 		Serial.println(F("Sensor reading error. Wait 5 seconds to inicialize...\n"));
 		delay(5000);
 		// necessário fazer upload de novo valor para gerar trigger de evento no Ubidots
-		sensor->uploadErrorLog(_ERR_NOERROR, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
+		_uploadErrorLog(_ERR_NOERROR, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
 	}
 	else if (config->Values[ccLastError].toInt() == _ERR_NOERROR)
 	{
 		Serial.println(F("Uncrontoled restart.\n"));
-		sensor->uploadErrorLog(_ERR_NOT_CONTROLED_RESTART, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_DONT_SAVE_CONFIG);
+		_uploadErrorLog(_ERR_NOT_CONTROLED_RESTART, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_DONT_SAVE_CONFIG);
 		config->setLastError(_ERR_NOERROR);
 	}
 
@@ -115,8 +110,39 @@ void cremaClass::ShowDateTime()
 
 void cremaClass::ReadSensors()
 {
-	if (time->IsTimeToAction(caReadSensors)) {
-		sensor->readSensors();
+	if (time->IsTimeToAction(caReadSensors))
+	{
+		if (!sensor->readSensors())   // retorna false se erro na leitura de sensores (06/08/2018: Temp > 50)
+		{
+			_uploadErrorLog(_ERR_SENSOR_READ, _ERR_UPLOAD_LOG_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
+		}
+	}
+}
+
+void cremaClass::_uploadToCloud(const cremaSensorsId first = csLuminosidade, const cremaSensorsId last = csUltraVioleta)
+{
+	//todo: verificação de conexão antes da chamada
+	if (!wifi->connected()) {
+		config->setForceConfig(false);     // se necessário iniciar webServer, informar apenas dados de WiFi
+		wifi->autoConnect(config);
+	}
+
+	sensor->publishHTTP(first, last);
+}
+
+void cremaClass::_uploadErrorLog(const int error, const bool restart, const bool saveConfig)
+{
+	sensor->Values[csLog] = error;                      // guarda valor do erro para subir para Ubidots
+	_uploadToCloud(csLog, csLog);
+
+	if (saveConfig)
+	{
+		config->setLastError(sensor->Values[csLog]);   // guarda erro no arquivo do ESP32 localmente para ser tratado na reinicialização
+	}
+
+	if (restart)
+	{
+		Restart();
 	}
 }
 
@@ -140,16 +166,16 @@ void cremaClass::_testGPSSignal()
 	{
 		if (!sensor->gpsData.valid)
 		{
-			sensor->uploadErrorLog(_ERR_SENSOR_GPS_POOR_SIGNAL, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_DONT_SAVE_CONFIG);
+			_uploadErrorLog(_ERR_SENSOR_GPS_POOR_SIGNAL, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_DONT_SAVE_CONFIG);
 		}
 	}
 }
 
  void cremaClass::_sayDate()
 {
-	serial->print("\n");
-	serial->print(time->strDateTimeExtenso());
-	serial->print("\n");
+	Serial.print("\n");
+	Serial.print(time->strDateTimeExtenso());
+	Serial.print("\n");
 }
 
 
@@ -166,7 +192,7 @@ void cremaClass::UploadSensorValues()
 	if (time->IsTimeToAction(caUploadSensorsValues)) {
 		_sayDate();
 		{
-			IoT->publishHTTP(sensor, _IoT_Update_IniSensor, _IoT_Update_FimSensor);
+			_uploadToCloud(_IoT_Update_IniSensor, _IoT_Update_FimSensor);
 			// TODO Ler sensor em outra task do processador
 			// https://www.dobitaobyte.com.br/selecionar-uma-cpu-para-executar-tasks-com-esp32/
 			//xTaskHandle * taskUploadSensorValue;
@@ -176,10 +202,17 @@ void cremaClass::UploadSensorValues()
 	}
 }
 
-void cremaClass::Restart(const bool force)
+void cremaClass::Restart()
 {
-	if (force) {
-		//IoT.publishHTTP(sensor, csLog, csLog);  // upload é feito pela função uploadErrorLog()
-		esp_restart();
-	}
+	//IoT.publishHTTP(sensor, csLog, csLog);  // upload é feito pela função uploadErrorLog()
+	esp_restart();
+}
+
+void cremaClass::displayConfigMode() {
+	visor->showMessage("_CONFIGURACAO_");
+	visor->clearLine(1);
+	visor->clearLine(2); visor->write("Conect. a rede");
+	visor->clearLine(3); visor->write("   \""); visor->write(_CREMA_SSID_AP); visor->write("\"");
+	visor->clearLine(4); visor->write("pelo computador");
+	visor->clearLine(5); visor->write("ou celular");
 }

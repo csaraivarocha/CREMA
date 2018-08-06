@@ -31,16 +31,10 @@
     <ClInclude Include="cremaErr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cremaIoT.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="cremaPinos.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cremaSensor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="cremaSerial.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cremaTime.h">
@@ -60,13 +54,7 @@
     <ClCompile Include="cremaConfig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cremaIoT.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="cremaSensor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cremaSerial.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="cremaTime.cpp">

@@ -14,18 +14,28 @@
 	#include "WProgram.h"
 #endif
 
-#include "cremaSerial.h"
 
+// sensors and GPS
 #include <BH1750.h>            // Luminosidade
 #include <Adafruit_BME280.h>   // umidade, temperatura e pressão
 #include <HardwareSerial.h>    // GPS: fazer conexão com o módulo e efetuar leitura
 #include <TinyGPS++.h>         // GPS: para validar as strings lidas do módulo GPS
 
+// upload to IoT cloud
+#include <WiFi.h>
+//#include <PubSubClient.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
+
+// ubidots configs
+#define DEVICE_LABEL "esp32_bh"                    // Assig the device label
+#define TOKEN "A1E-nuWgdhFqYZUQAIqItVXN67ssBhtJYV" // Put your Ubidots' TOKEN
+
 // cremaPinos.h deve ser incluído por último
 #include "cremaTime.h"
-#include "cremaPinos.h"
 #include "cremaErr.h"
-#include "cremaIoT.h"
+#include "cremaPinos.h"
+
 
 typedef enum cremaSensorsId {
 	csLuminosidade,
@@ -69,13 +79,12 @@ private:
 	byte _gpsReadesWithError = 0;
 
 	// IoT
-	char *_mqttBroker = "http://things.ubidots.com";
 	HTTPClient _http;
 public:
 	cremaSensorClass();
-	void readSensors();
-	void publishHTTP(cremaSensorClass sensores, const cremaSensorsId first, const cremaSensorsId last);
-	void uploadErrorLog(const int error, const bool restart = _ERR_UPLOAD_LOG_DONT_RESTART, const bool saveConfig = _ERR_UPLOAD_LOG_DONT_SAVE_CONFIG);
+	bool init();
+	bool readSensors();
+	void publishHTTP(const cremaSensorsId first, const cremaSensorsId last);
 	bool working[csCount] = { true,true,true,true,true,true,true,true };
 	byte Decimals[csCount] = { 0,1,1,0,0,3,0 };
 	char* Names[csCount] = { "Luminosidade", "Umidade", "Temperatura", "Pressão", "Altitude", "Intensidade Ultra violeta", "memory", "log"};

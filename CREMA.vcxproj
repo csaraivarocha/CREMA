@@ -129,22 +129,16 @@
     <ClInclude Include="cremaClass.h">
       <FileType>CppCode</FileType>
     </ClInclude>
-    <ClInclude Include="cremaconfig->h">
+    <ClInclude Include="cremaConfig.h">
       <FileType>CppCode</FileType>
     </ClInclude>
     <ClInclude Include="cremaErr.h">
-      <FileType>CppCode</FileType>
-    </ClInclude>
-    <ClInclude Include="cremaIoT.h">
       <FileType>CppCode</FileType>
     </ClInclude>
     <ClInclude Include="cremaPinos.h">
       <FileType>CppCode</FileType>
     </ClInclude>
     <ClInclude Include="cremaSensor.h">
-      <FileType>CppCode</FileType>
-    </ClInclude>
-    <ClInclude Include="cremaSerial.h">
       <FileType>CppCode</FileType>
     </ClInclude>
     <ClInclude Include="cremaTime.h">
@@ -160,10 +154,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cremaClass.cpp" />
-    <ClCompile Include="cremaconfig->cpp" />
-    <ClCompile Include="cremaIoT.cpp" />
+    <ClCompile Include="cremaConfig.cpp" />
     <ClCompile Include="cremaSensor.cpp" />
-    <ClCompile Include="cremaSerial.cpp" />
     <ClCompile Include="cremaTime.cpp" />
     <ClCompile Include="cremaVisor.cpp" />
     <ClCompile Include="cremaWiFi.cpp" />
