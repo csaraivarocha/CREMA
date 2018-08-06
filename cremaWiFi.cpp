@@ -5,17 +5,17 @@
 //callback que indica que o ESP entrou no modo AP
 void configModeCallback(WiFiManager *myWiFiManager) {
 	//  cremaSerial.println("Entered config mode");
-	crema.serial.println("Entrou no modo de configuracao");
-	crema.serial.println(WiFi.softAPIP().toString()); //imprime o IP do AP
-	crema.serial.println(myWiFiManager->getConfigPortalSSID()); //imprime o SSID criado da rede
-	crema.wifi.displayConfigMode();
-	crema.wifi.webServerConfigSaved = false;
+	crema.serial->println("Entrou no modo de configuracao");
+	crema.serial->println(WiFi.softAPIP().toString()); //imprime o IP do AP
+	crema.serial->println(myWiFiManager->getConfigPortalSSID()); //imprime o SSID criado da rede
+	crema.wifi->displayConfigMode();
+	crema.wifi->webServerConfigSaved = false;
 }
 
 void saveConfigCallback() {
-	crema.serial.println("Configuracao salva");
-	crema.serial.println(WiFi.softAPIP().toString()); //imprime o IP do AP
-	crema.wifi.webServerConfigSaved = true;
+	crema.serial->println("Configuracao salva");
+	crema.serial->println(WiFi.softAPIP().toString()); //imprime o IP do AP
+	crema.wifi->webServerConfigSaved = true;
 }
 
 
@@ -69,11 +69,11 @@ cremaWiFiClass::~cremaWiFiClass()
 	//
 }
 
-bool cremaWiFiClass::autoConnect(cremaConfigClass Config)
+bool cremaWiFiClass::autoConnect(cremaConfigClass * config)
 {
-	if (!Config.getConfigOk() || Config.getForceConfig())
+	if (!config->getConfigOk() || config->getForceConfig())
 	{
-		Config.setForceConfig(false);
+		config->setForceConfig(false);
 
 		WiFiManagerParameter * _wifiParam[ccCount];
 
@@ -83,9 +83,9 @@ bool cremaWiFiClass::autoConnect(cremaConfigClass Config)
 		for (size_t i = 0; i < ccCount; i++)
 		{
 			cremaConfigId key = cremaConfigId(i);
-			if (Config.Imputable[key])
+			if (config->Imputable[key])
 			{
-				_wifiParam[key] = new WiFiManagerParameter(Config.nameKeys[key].c_str(), Config.descKeys[key].c_str(), Config.Values[key].c_str(), _CREMA_CFG_VALUE_SIZE);
+				_wifiParam[key] = new WiFiManagerParameter(config->nameKeys[key].c_str(), config->descKeys[key].c_str(), config->Values[key].c_str(), _CREMA_CFG_VALUE_SIZE);
 				//WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 40);
 				
 				//add all your parameters here
@@ -94,24 +94,24 @@ bool cremaWiFiClass::autoConnect(cremaConfigClass Config)
 		}
 		startWebServer();
 
-		if (crema.wifi.webServerConfigSaved)
+		if (crema.wifi->webServerConfigSaved)
 		{
 			for (size_t i = 0; i < ccCount; i++)
 			{
 				cremaConfigId key = cremaConfigId(i);
-				if (Config.Imputable[key])
+				if (config->Imputable[key])
 				{
-					Config.Values[key] = "";
-					Config.Values[key].concat(_wifiParam[key]->getValue());
+					config->Values[key] = "";
+					config->Values[key].concat(_wifiParam[key]->getValue());
 				}
 			}
-			Config.saveConfig();
+			config->saveConfig();
 		}
 
 		for (size_t i = 0; i < ccCount; i++)
 		{
 			cremaConfigId key = cremaConfigId(i);
-			if (Config.Imputable[key])
+			if (config->Imputable[key])
 			{
 				delete _wifiParam[key];
 			}
@@ -119,29 +119,29 @@ bool cremaWiFiClass::autoConnect(cremaConfigClass Config)
 	}
 	else
 	{
-		crema.serial.print("\nConectando ao ultimo WiFi\n");
+		crema.serial->print("\nConectando ao ultimo WiFi\n");
 
-		crema.visor.clearLine(2);
-		crema.visor.write("Conectando");
-		crema.visor.clearLine(3);
-		crema.visor.write("WiFi...");
+		crema.visor->clearLine(2);
+		crema.visor->write("Conectando");
+		crema.visor->clearLine(3);
+		crema.visor->write("WiFi...");
 
 		_wifiManager.autoConnect(_CREMA_SSID_AP, "");
 
-		crema.visor.clearLine(4);
-		crema.visor.write(_wifiManager.getSSID());
+		crema.visor->clearLine(4);
+		crema.visor->write(_wifiManager.getSSID());
 		delay(1500);
 	}
-	crema.visor.clear();
+	crema.visor->clear();
 }
 
 void cremaWiFiClass::displayConfigMode() {
-	crema.visor.showMessage("_CONFIGURACAO_");
-	crema.visor.clearLine(1);
-	crema.visor.clearLine(2); crema.visor.write("Conect. a rede");
-	crema.visor.clearLine(3); crema.visor.write("   \""); crema.visor.write(_CREMA_SSID_AP); crema.visor.write("\"");
-	crema.visor.clearLine(4); crema.visor.write("pelo computador");
-	crema.visor.clearLine(5); crema.visor.write("ou celular");
+	crema.visor->showMessage("_CONFIGURACAO_");
+	crema.visor->clearLine(1);
+	crema.visor->clearLine(2); crema.visor->write("Conect. a rede");
+	crema.visor->clearLine(3); crema.visor->write("   \""); crema.visor->write(_CREMA_SSID_AP); crema.visor->write("\"");
+	crema.visor->clearLine(4); crema.visor->write("pelo computador");
+	crema.visor->clearLine(5); crema.visor->write("ou celular");
 }
 
 bool cremaWiFiClass::startWebServer()
@@ -149,7 +149,7 @@ bool cremaWiFiClass::startWebServer()
 	if (!_wifiManager.startConfigPortal(_CREMA_SSID_AP)) {
 		ESP.restart();
 	}
-	crema.visor.clear();
+	crema.visor->clear();
 
 	return true;
 }

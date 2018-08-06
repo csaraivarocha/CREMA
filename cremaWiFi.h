@@ -43,7 +43,7 @@ private:
 public:
 	cremaWiFiClass();
 	~cremaWiFiClass();
-	bool autoConnect(cremaConfigClass Config);
+	bool autoConnect(cremaConfigClass * Config);
 	void displayConfigMode();
 	bool startWebServer();
 	bool connected();

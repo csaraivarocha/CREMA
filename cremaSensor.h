@@ -25,6 +25,7 @@
 #include "cremaTime.h"
 #include "cremaPinos.h"
 #include "cremaErr.h"
+#include "cremaIoT.h"
 
 typedef enum cremaSensorsId {
 	csLuminosidade,
@@ -66,9 +67,14 @@ private:
 	bool _gpsOk();
 	void _saveGPS();
 	byte _gpsReadesWithError = 0;
+
+	// IoT
+	char *_mqttBroker = "http://things.ubidots.com";
+	HTTPClient _http;
 public:
 	cremaSensorClass();
 	void readSensors();
+	void publishHTTP(cremaSensorClass sensores, const cremaSensorsId first, const cremaSensorsId last);
 	void uploadErrorLog(const int error, const bool restart = _ERR_UPLOAD_LOG_DONT_RESTART, const bool saveConfig = _ERR_UPLOAD_LOG_DONT_SAVE_CONFIG);
 	bool working[csCount] = { true,true,true,true,true,true,true,true };
 	byte Decimals[csCount] = { 0,1,1,0,0,3,0 };

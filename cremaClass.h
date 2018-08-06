@@ -28,6 +28,7 @@ protected:
 	char *_timeSep = " ";
 	void _readGPS();
 	void _testGPSSignal();
+	void _sayDate();
 public:
 	void init();
 	void treatLastError();
@@ -37,13 +38,12 @@ public:
 	void doGPS();
 	void UploadSensorValues();
 	void Restart(const bool force = false);
-	cremaSensorClass sensor;
-	cremaSerialClass serial;
-	cremaTimeClass time;
-	cremaVisorClass visor;
-	cremaWiFiClass wifi;
-	cremaIoTClass IoT;
-	cremaConfigClass config;
+	cremaSensorClass *sensor;
+	cremaSerialClass *serial;
+	cremaTimeClass *time;
+	cremaVisorClass *visor;
+	cremaWiFiClass *wifi;
+	cremaConfigClass *config;
 };
 
 static cremaClass crema;

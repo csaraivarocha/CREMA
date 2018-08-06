@@ -6,23 +6,23 @@
 
 /*
 void ___ubidots_callback(char* topic, byte* payload, unsigned int length) {
-	crema.serial.print("\nMensagem recebida [");
-	crema.serial.print(topic);
-	crema.serial.print("] ");
+	crema.serial->print("\nMensagem recebida [");
+	crema.serial->print(topic);
+	crema.serial->print("] ");
 	for (int i = 0; i<length; i++) {
-		crema.serial.print((char)payload[i]);
+		crema.serial->print((char)payload[i]);
 	}
 }
 */
 
 void cremaClass::init()
 {
-	crema.visor.showMessage(F("Inicializando"));
-	crema.config.init();        // config.init tem que ser antes. para ler as configurações do arquivo
-	crema.wifi.autoConnect(crema.config);
-	crema.treatLastError();
-	crema.sensor.readSensors();
-	crema.visor.clear();
+	visor->showMessage(F("Inicializando"));
+	config->init();        // config.init tem que ser antes. para ler as configurações do arquivo
+	wifi->autoConnect(config);
+	treatLastError();
+	sensor->readSensors();
+	visor->clear();
 
 	Serial_GPS.flush();
 }
@@ -30,67 +30,66 @@ void cremaClass::init()
 // esta função é chamada somente uma vês, no início do sistema, quando cria a classe cremaClass.
 void cremaClass::treatLastError()
 {
-	Serial.printf("Treating last error: %d\n", crema.config.Values[ccLastError].toInt());
+	Serial.printf("Treating last error: %d\n", config->Values[ccLastError].toInt());
 
 	for (size_t i = 0; i < ccCount; i++)
 	{
 		cremaConfigId key = (cremaConfigId)i;
-		Serial.printf("%s=%s\n", crema.config.nameKeys[key].c_str(), crema.config.Values[key].c_str());
-		Serial.printf("%s=%s\n", config.nameKeys[key].c_str(), config.Values[key].c_str());
+		Serial.printf("%s=%s\n", config->nameKeys[key].c_str(), config->Values[key].c_str());
 	}
 
 	// maior que 4 indica conteúdo inválido, pois a quantidade maior de caracteres é 4 (-999)
-	if (crema.config.Values[ccLastError].length() > 4)
+	if (config->Values[ccLastError].length() > 4)
 	{
 		Serial.println(F("Invalid last error! (length > 4)\n"));
-		crema.config.setLastError(_ERR_NOERROR);
+		config->setLastError(_ERR_NOERROR);
 	}
-	else if (crema.config.Values[ccLastError].toInt() == _ERR_SENSOR_READ)
+	else if (config->Values[ccLastError].toInt() == _ERR_SENSOR_READ)
 	{
 		Serial.println(F("Sensor reading error. Wait 5 seconds to inicialize...\n"));
 		delay(5000);
 		// necessário fazer upload de novo valor para gerar trigger de evento no Ubidots
-		crema.sensor.uploadErrorLog(_ERR_NOERROR, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
+		sensor->uploadErrorLog(_ERR_NOERROR, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
 	}
-	else if (config.Values[ccLastError].toInt() == _ERR_NOERROR)
+	else if (config->Values[ccLastError].toInt() == _ERR_NOERROR)
 	{
 		Serial.println(F("Uncrontoled restart.\n"));
-		crema.sensor.uploadErrorLog(_ERR_NOT_CONTROLED_RESTART, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_DONT_SAVE_CONFIG);
-		crema.config.setLastError(_ERR_NOERROR);
+		sensor->uploadErrorLog(_ERR_NOT_CONTROLED_RESTART, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_DONT_SAVE_CONFIG);
+		config->setLastError(_ERR_NOERROR);
 	}
 
-	Serial.printf("\nNew error setted: %s\n", crema.config.Values[ccLastError].c_str());
+	Serial.printf("\nNew error setted: %s\n", config->Values[ccLastError].c_str());
 }
 
 void cremaClass::ShowSensorValues()
 {
-	if (crema.time.IsTimeToAction(caShowSensorValues)) {
+	if (time->IsTimeToAction(caShowSensorValues)) {
 	
-		crema.visor.clearLine(0);
-		crema.visor.write(crema.sensor.Values[csTemperatura], crema.sensor.Decimals[csTemperatura]);
-		crema.visor.write("C    ");
+		visor->clearLine(0);
+		visor->write(sensor->Values[csTemperatura], sensor->Decimals[csTemperatura]);
+		visor->write("C    ");
 
-		crema.visor.write(crema.sensor.Values[csUmidade], crema.sensor.Decimals[csUmidade]);
-		crema.visor.write("%");
+		visor->write(sensor->Values[csUmidade], sensor->Decimals[csUmidade]);
+		visor->write("%");
 
 		if (_whatShow) {
-			crema.visor.clearLine(2);
-			crema.visor.write(crema.sensor.Values[csPressao], crema.sensor.Decimals[csPressao]);
-			crema.visor.write("mP  ");
+			visor->clearLine(2);
+			visor->write(sensor->Values[csPressao], sensor->Decimals[csPressao]);
+			visor->write("mP  ");
 
-			crema.visor.write(crema.sensor.Values[csAltitude], crema.sensor.Decimals[csAltitude]);
-			crema.visor.write("m");
+			visor->write(sensor->Values[csAltitude], sensor->Decimals[csAltitude]);
+			visor->write("m");
 
-			crema.visor.clearLine(3);
+			visor->clearLine(3);
 		}
 		else {
-			crema.visor.clearLine(2);
-			crema.visor.write(crema.sensor.Values[csLuminosidade], crema.sensor.Decimals[csLuminosidade]);
-			crema.visor.writeln(" luz");
+			visor->clearLine(2);
+			visor->write(sensor->Values[csLuminosidade], sensor->Decimals[csLuminosidade]);
+			visor->writeln(" luz");
 
-			crema.visor.clearLine(3);
-			crema.visor.write(crema.sensor.Values[csUltraVioleta], crema.sensor.Decimals[csUltraVioleta]);
-			crema.visor.write(" uv");
+			visor->clearLine(3);
+			visor->write(sensor->Values[csUltraVioleta], sensor->Decimals[csUltraVioleta]);
+			visor->write(" uv");
 		}
 		_whatShow = !_whatShow;
 	}
@@ -98,8 +97,8 @@ void cremaClass::ShowSensorValues()
 
 void cremaClass::ShowDateTime()
 {
-	if (crema.time.IsTimeToAction(caShowDateTime, true)) {
-		crema.time.readTime();
+	if (time->IsTimeToAction(caShowDateTime, true)) {
+		time->readTime();
 		if (_timeSep == ":") {
 			_timeSep = ".";
 		}
@@ -107,17 +106,17 @@ void cremaClass::ShowDateTime()
 			_timeSep = ":";
 		}
 
-		crema.visor.clearLine(5);
-		crema.visor.write(crema.time.strDMY("/", true, true, false));
-		crema.visor.write(" - ");
-		crema.visor.write(crema.time.strHMS(_timeSep, true, true, false));
+		visor->clearLine(5);
+		visor->write(time->strDMY("/", true, true, false));
+		visor->write(" - ");
+		visor->write(time->strHMS(_timeSep, true, true, false));
 	}
 }
 
 void cremaClass::ReadSensors()
 {
-	if (crema.time.IsTimeToAction(caReadSensors)) {
-		crema.sensor.readSensors();
+	if (time->IsTimeToAction(caReadSensors)) {
+		sensor->readSensors();
 	}
 }
 
@@ -129,45 +128,45 @@ void cremaClass::doGPS()
 
 void cremaClass::_readGPS()
 {
-	if (crema.time.IsTimeToAction(caReadGPS))
+	if (time->IsTimeToAction(caReadGPS))
 	{
-		crema.sensor.readGPS();
+		sensor->readGPS();
 	}
 }
 
 void cremaClass::_testGPSSignal()
 {
-	if (crema.time.IsTimeToAction(caTestGPSSignal))
+	if (time->IsTimeToAction(caTestGPSSignal))
 	{
-		if (!crema.sensor.gpsData.valid)
+		if (!sensor->gpsData.valid)
 		{
-			crema.sensor.uploadErrorLog(_ERR_SENSOR_GPS_POOR_SIGNAL, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_DONT_SAVE_CONFIG);
+			sensor->uploadErrorLog(_ERR_SENSOR_GPS_POOR_SIGNAL, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_DONT_SAVE_CONFIG);
 		}
 	}
 }
 
- void sayDate() 
+ void cremaClass::_sayDate()
 {
-	crema.serial.print("\n");
-	crema.serial.print(crema.time.strDateTimeExtenso());
-	crema.serial.print("\n");
+	serial->print("\n");
+	serial->print(time->strDateTimeExtenso());
+	serial->print("\n");
 }
 
 
 
  //void __uploadSensorValues(void *parms)
  //{
-	//crema.IoT.publishHTTP(crema.sensor, _IoT_Update_IniSensor, _IoT_Update_FimSensor);
+	//IoT.publishHTTP(sensor, _IoT_Update_IniSensor, _IoT_Update_FimSensor);
 	//vTaskDelete(NULL);
 	//return;
  //}
 
 void cremaClass::UploadSensorValues()
 {
-	if (crema.time.IsTimeToAction(caUploadSensorsValues)) {
-		sayDate();
+	if (time->IsTimeToAction(caUploadSensorsValues)) {
+		_sayDate();
 		{
-			crema.IoT.publishHTTP(crema.sensor, _IoT_Update_IniSensor, _IoT_Update_FimSensor);
+			IoT->publishHTTP(sensor, _IoT_Update_IniSensor, _IoT_Update_FimSensor);
 			// TODO Ler sensor em outra task do processador
 			// https://www.dobitaobyte.com.br/selecionar-uma-cpu-para-executar-tasks-com-esp32/
 			//xTaskHandle * taskUploadSensorValue;
@@ -180,7 +179,7 @@ void cremaClass::UploadSensorValues()
 void cremaClass::Restart(const bool force)
 {
 	if (force) {
-		//crema.IoT.publishHTTP(crema.sensor, csLog, csLog);  // upload é feito pela função uploadErrorLog()
+		//IoT.publishHTTP(sensor, csLog, csLog);  // upload é feito pela função uploadErrorLog()
 		esp_restart();
 	}
 }

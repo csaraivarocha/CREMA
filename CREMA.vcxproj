@@ -129,7 +129,7 @@
     <ClInclude Include="cremaClass.h">
       <FileType>CppCode</FileType>
     </ClInclude>
-    <ClInclude Include="cremaConfig.h">
+    <ClInclude Include="cremaconfig->h">
       <FileType>CppCode</FileType>
     </ClInclude>
     <ClInclude Include="cremaErr.h">
@@ -160,7 +160,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cremaClass.cpp" />
-    <ClCompile Include="cremaConfig.cpp" />
+    <ClCompile Include="cremaconfig->cpp" />
     <ClCompile Include="cremaIoT.cpp" />
     <ClCompile Include="cremaSensor.cpp" />
     <ClCompile Include="cremaSerial.cpp" />
