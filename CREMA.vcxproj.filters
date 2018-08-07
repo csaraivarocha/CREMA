@@ -43,9 +43,6 @@
     <ClInclude Include="cremaVisor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cremaWiFi.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cremaClass.cpp">
@@ -61,9 +58,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="cremaVisor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cremaWiFi.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

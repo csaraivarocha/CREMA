@@ -6,7 +6,6 @@
 */
 
 #include "cremaTime.h"
-#include "cremaClass.h"
 
 cremaTimeClass::cremaTimeClass()
 {

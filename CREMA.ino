@@ -1,4 +1,3 @@
-#include "cremaConfig.h"
 #include "cremaClass.h"
 
 #define CREMA_TECNICAL_DEBUG_NO
@@ -10,14 +9,14 @@ void setup()
 	crema_I2C_config();
 #endif // CREMA_TECNICAL_DEBUG_YES
 	
-	crema.init();
+	crema->init();
 }
 
 void loop()
 {
-	crema.ShowDateTime();
-	crema.doGPS();
-	crema.ReadSensors();
-	crema.ShowSensorValues();
-	crema.UploadSensorValues();
+	crema->ShowDateTime();
+	crema->doGPS();
+	crema->ReadSensors();
+	crema->ShowSensorValues();
+	crema->UploadSensorValues();
 }

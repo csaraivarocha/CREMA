@@ -1,14 +1,13 @@
 #include "cremaWiFi.h"
 #include "cremaClass.h"
 
-
 //callback que indica que o ESP entrou no modo AP
 void configModeCallback(WiFiManager *myWiFiManager) {
 	//  Serial.println("Entered config mode");
 	Serial.println("Entrou no modo de configuracao");
 	Serial.println(WiFi.softAPIP().toString()); //imprime o IP do AP
 	Serial.println(myWiFiManager->getConfigPortalSSID()); //imprime o SSID criado da rede
-	crema.displayConfigMode();
+	crema->displayConfigMode();
 	g_webServerConfigSaved = false;
 }
 
@@ -122,26 +121,26 @@ bool cremaWiFiClass::autoConnect(cremaConfigClass * config)
 	{
 		Serial.print("\nConectando ao ultimo WiFi\n");
 
-		crema.visor->clearLine(2);
-		crema.visor->write("Conectando");
-		crema.visor->clearLine(3);
-		crema.visor->write("WiFi...");
+		crema->visor->clearLine(2);
+		crema->visor->write("Conectando");
+		crema->visor->clearLine(3);
+		crema->visor->write("WiFi...");
 
 		_wifiManager.autoConnect(_CREMA_SSID_AP, "");
 
-		crema.visor->clearLine(4);
-		crema.visor->write(_wifiManager.getSSID());
+		crema->visor->clearLine(4);
+		crema->visor->write(_wifiManager.getSSID());
 		delay(1500);
 	}
-	crema.visor->clear();
+	crema->visor->clear();
 }
 
 bool cremaWiFiClass::startWebServer()
 {
 	if (!_wifiManager.startConfigPortal(_CREMA_SSID_AP)) {
-		crema.Restart();
+		crema->Restart();
 	}
-	crema.visor->clear();
+	crema->visor->clear();
 
 	return true;
 }

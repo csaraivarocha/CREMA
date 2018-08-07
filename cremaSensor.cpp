@@ -23,7 +23,6 @@ GPIO pins -> SDA: 21; SCL: 22
 */
 
 #include "cremaSensor.h"
-#include "cremaClass.h"
 #define SENSORS_PRESSURE_SEALEVELHPA      (1013.25F)   /**< Average sea level pressure is 1013.25 hPa */
 
 // mqtt receiver function

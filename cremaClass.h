@@ -9,17 +9,45 @@
 	#include "WProgram.h"
 #endif
 
+
+#if defined(ESP8266)
+#include <ESP8266WiFi.h>  //ESP8266 Core WiFi Library         
+#else
+#include <WiFi.h>      //ESP32 Core WiFi Library    
+#endif
+
+
+//Local DNS Server used for redirecting all requests to the configuration portal 
+// (https://github.com/zhouhan0126/DNSServer---esp32 )
+#include <DNSServer.h> 
+
+
+#if defined(ESP8266)
+#include <ESP8266WebServer.h> //Local WebServer used to serve the configuration portal
+#else
+//Local WebServer used to serve the configuration portal ( https://github.com/zhouhan0126/WebServer-esp32 )
+#include <WebServer.h> 
+#endif
+
+
+// WiFi Configuration Magic ( https://github.com/zhouhan0126/WIFIMANAGER-ESP32 ) >> 
+// https://github.com/tzapu/WiFiManager (ORIGINAL)
+#include <WiFiManager.h>   
+
+
+#define _CREMA_SSID_AP "CREMA"
+
 #include "cremaTime.h"
 #include "cremaVisor.h"
 #include "cremaSensor.h"
-#include "cremaWIFI.h"
 #include "cremaConfig.h"
-
+#include "cremaPinos.h"
 #include "cremaErr.h"
 
 class cremaClass
 {
- protected:
+protected:
+	WiFiManager _wifiManager;
 protected:
 	bool _whatShow = true;
 	bool _whatUpload = true;
@@ -29,7 +57,11 @@ protected:
 	void _sayDate();
 	void _uploadErrorLog(const int error, const bool restart, const bool saveConfig);
 	void _uploadToCloud(const cremaSensorsId first, const cremaSensorsId last);
+	void _initWiFi();
+	bool _wifi_autoConnect();
+	void _wifi_startWebServer();
 public:
+	cremaClass();
 	void init();
 	void treatLastError();
 	void ShowSensorValues();
@@ -41,11 +73,11 @@ public:
 	void displayConfigMode();
 	cremaSensorClass *sensor;
 	cremaTimeClass *time;
-	cremaVisorClass *visor;
-	cremaWiFiClass *wifi;
+	cremaVisorClass visor;
 	cremaConfigClass *config;
+	bool webServerConfigSaved = false;
 };
 
-static cremaClass crema;
+static cremaClass *crema;
 
 #endif
