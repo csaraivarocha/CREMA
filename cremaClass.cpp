@@ -8,10 +8,14 @@ cremaClass::cremaClass()
 	_initWiFi();
 }
 
+cremaClass::~cremaClass()
+{
+}
+
 void cremaClass::init()
 {
 	Serial.begin(115200);
-
+	Serial.println(visor._col);
 	visor.showMessage(F("Inicializando"));
 	config->init();        // config.init tem que ser antes. para ler as configurações do arquivo
 	_wifi_autoConnect();
