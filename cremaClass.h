@@ -76,10 +76,8 @@ public:
 	bool webServerConfigSaved = false;
 	cremaSensorClass *sensor;
 	cremaTimeClass *time;
-	cremaVisorClass visor = cremaVisorClass();
+	cremaVisorClass *visor = new cremaVisorClass();
 	cremaConfigClass *config;
 };
-
-static cremaClass *crema = new cremaClass();
 
 #endif

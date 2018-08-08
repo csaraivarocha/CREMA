@@ -30,9 +30,9 @@ class cremaVisorClass
 private:
 	unsigned int _contraste = 57;
 	const unsigned int _addRow = 1;
-	int _row, _col = 0;
 public:
 	cremaVisorClass();
+	int _row, _col = 0;
 	PCD8544 _lcd = PCD8544(_PIN_SCLK, _PIN_SDIN, _PIN_DC, _PIN_RESET, _PIN_SCE);
 	void write(const String txt);
 	void write(const double dbl, const int digits = 0);

@@ -15,8 +15,8 @@ cremaClass::~cremaClass()
 void cremaClass::init()
 {
 	Serial.begin(115200);
-	Serial.println(visor._col);
-	visor.showMessage(F("Inicializando"));
+	Serial.println(visor->_col);
+	visor->showMessage(F("Inicializando"));
 	config->init();        // config.init tem que ser antes. para ler as configurações do arquivo
 	_wifi_autoConnect();
 	treatLastError();
@@ -25,7 +25,7 @@ void cremaClass::init()
 		_uploadErrorLog(_ERR_SENSOR_INIT, _ERR_UPLOAD_LOG_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
 	}
 
-	visor.clear();
+	visor->clear();
 
 	Serial_GPS.flush();
 }
@@ -68,31 +68,31 @@ void cremaClass::ShowSensorValues()
 {
 	if (time->IsTimeToAction(caShowSensorValues)) {
 	
-		visor.clearLine(0);
-		visor.write(sensor->Values[csTemperatura], sensor->Decimals[csTemperatura]);
-		visor.write("C    ");
+		visor->clearLine(0);
+		visor->write(sensor->Values[csTemperatura], sensor->Decimals[csTemperatura]);
+		visor->write("C    ");
 
-		visor.write(sensor->Values[csUmidade], sensor->Decimals[csUmidade]);
-		visor.write("%");
+		visor->write(sensor->Values[csUmidade], sensor->Decimals[csUmidade]);
+		visor->write("%");
 
 		if (_whatShow) {
-			visor.clearLine(2);
-			visor.write(sensor->Values[csPressao], sensor->Decimals[csPressao]);
-			visor.write("mP  ");
+			visor->clearLine(2);
+			visor->write(sensor->Values[csPressao], sensor->Decimals[csPressao]);
+			visor->write("mP  ");
 
-			visor.write(sensor->Values[csAltitude], sensor->Decimals[csAltitude]);
-			visor.write("m");
+			visor->write(sensor->Values[csAltitude], sensor->Decimals[csAltitude]);
+			visor->write("m");
 
-			visor.clearLine(3);
+			visor->clearLine(3);
 		}
 		else {
-			visor.clearLine(2);
-			visor.write(sensor->Values[csLuminosidade], sensor->Decimals[csLuminosidade]);
-			visor.writeln(" luz");
+			visor->clearLine(2);
+			visor->write(sensor->Values[csLuminosidade], sensor->Decimals[csLuminosidade]);
+			visor->writeln(" luz");
 
-			visor.clearLine(3);
-			visor.write(sensor->Values[csUltraVioleta], sensor->Decimals[csUltraVioleta]);
-			visor.write(" uv");
+			visor->clearLine(3);
+			visor->write(sensor->Values[csUltraVioleta], sensor->Decimals[csUltraVioleta]);
+			visor->write(" uv");
 		}
 		_whatShow = !_whatShow;
 	}
@@ -109,10 +109,10 @@ void cremaClass::ShowDateTime()
 			_timeSep = ":";
 		}
 
-		visor.clearLine(5);
-		visor.write(time->strDMY("/", true, true, false));
-		visor.write(" - ");
-		visor.write(time->strHMS(_timeSep, true, true, false));
+		visor->clearLine(5);
+		visor->write(time->strDMY("/", true, true, false));
+		visor->write(" - ");
+		visor->write(time->strHMS(_timeSep, true, true, false));
 	}
 }
 
@@ -144,15 +144,16 @@ void _wifi_configModeCallback(WiFiManager *myWiFiManager) {
 	Serial.println("Entrou no modo de configuracao");
 	Serial.println(WiFi.softAPIP().toString()); //imprime o IP do AP
 	Serial.println(myWiFiManager->getConfigPortalSSID()); //imprime o SSID criado da rede
-	crema->displayConfigMode();
-	crema->webServerConfigSaved = false;
+
+	//crema.displayConfigMode();
+	//crema.webServerConfigSaved = false;
 }
 
 //callback que indica que salvou as configurações de rede
 void _wifi_saveConfigCallback() {
 	Serial.println("Configuracao salva");
 	Serial.println(WiFi.softAPIP().toString()); //imprime o IP do AP
-	crema->webServerConfigSaved = true;
+	//crema.webServerConfigSaved = true;
 }
 
 void cremaClass::_initWiFi()
@@ -252,18 +253,18 @@ bool cremaClass::_wifi_autoConnect()
 	{
 		Serial.print("\nConectando ao ultimo WiFi\n");
 
-		visor.clearLine(2);
-		visor.write("Conectando");
-		visor.clearLine(3);
-		visor.write("WiFi...");
+		visor->clearLine(2);
+		visor->write("Conectando");
+		visor->clearLine(3);
+		visor->write("WiFi...");
 
 		_wifiManager.autoConnect(_CREMA_SSID_AP, "");
 
-		visor.clearLine(4);
-		visor.write(_wifiManager.getSSID());
+		visor->clearLine(4);
+		visor->write(_wifiManager.getSSID());
 		delay(1500);
 	}
-	visor.clear();
+	visor->clear();
 }
 
 void cremaClass::_wifi_startWebServer()
@@ -271,7 +272,7 @@ void cremaClass::_wifi_startWebServer()
 	if (!_wifiManager.startConfigPortal(_CREMA_SSID_AP)) {
 		Restart();
 	}
-	visor.clear();
+	visor->clear();
 }
 
 void cremaClass::_uploadErrorLog(const int error, const bool restart, const bool saveConfig)
@@ -353,10 +354,10 @@ void cremaClass::Restart()
 }
 
 void cremaClass::displayConfigMode() {
-	visor.showMessage("_CONFIGURACAO_");
-	visor.clearLine(1);
-	visor.clearLine(2); visor.write("Conect. a rede");
-	visor.clearLine(3); visor.write("   \""); visor.write(_CREMA_SSID_AP); visor.write("\"");
-	visor.clearLine(4); visor.write("pelo computador");
-	visor.clearLine(5); visor.write("ou celular");
+	visor->showMessage("_CONFIGURACAO_");
+	visor->clearLine(1);
+	visor->clearLine(2); visor->write("Conect. a rede");
+	visor->clearLine(3); visor->write("   \""); visor->write(_CREMA_SSID_AP); visor->write("\"");
+	visor->clearLine(4); visor->write("pelo computador");
+	visor->clearLine(5); visor->write("ou celular");
 }
