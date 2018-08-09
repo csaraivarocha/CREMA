@@ -23,8 +23,17 @@ GPIO pins -> SDA: 21; SCL: 22
 */
 
 #include "cremaSensor.h"
-#include "cremaClass.h"
 #define SENSORS_PRESSURE_SEALEVELHPA      (1013.25F)   /**< Average sea level pressure is 1013.25 hPa */
+
+// mqtt receiver function
+void ubidots_callback(char* topic, byte* payload, unsigned int length) {
+	Serial.print("\nMensagem recebida [");
+	Serial.print(topic);
+	Serial.print("] ");
+	for (int i = 0; i<length; i++) {
+		Serial.print((char)payload[i]);
+	}
+}
 
 cremaSensorClass::cremaSensorClass()
 {
@@ -32,8 +41,13 @@ cremaSensorClass::cremaSensorClass()
 	Serial_GPS.begin(9600, SERIAL_8N1, _PIN_GPS_RX, _PIN_GPS_TX);
 	delay(500);
 
-	pinMode(_PIN_LEN_READ_SENSOR_VALUES, OUTPUT);
-	digitalWrite(_PIN_LEN_READ_SENSOR_VALUES, LOW);
+	// sensor read led indicator
+	pinMode(_PIN_LED_READ_SENSOR_VALUES, OUTPUT);
+	digitalWrite(_PIN_LED_READ_SENSOR_VALUES, LOW);
+
+	// IoT upload led indicator
+	pinMode(_PIN_LED_UPLOAD_SENSOR_VALUES, OUTPUT);
+	digitalWrite(_PIN_LED_UPLOAD_SENSOR_VALUES, LOW);
 
 	// parametrizações do sensor ultra violeta
 	//pinMode(_CREMA_UV_PIN, INPUT);
@@ -45,11 +59,14 @@ cremaSensorClass::cremaSensorClass()
 	// parametrização do sensor DHT (temperatura e umidade)
 	//pinMode(_CREMA_DHT_PIN, INPUT);
 	//adcAttachPin(_CREMA_DHT_PIN);
+}
 
+bool cremaSensorClass::init()
+{
 	// inicialização dos sensores
 	if (!(working[csLuminosidade] = _luxSensor.begin())) {
 		Serial.println("\nLux\n++++++++++++++++++++++\nRestating ESP32\n++++++++++++++++++++++");
-		//esp_restart();
+		return false;
 	}
 
 	_bme.begin(0x76);
@@ -62,11 +79,13 @@ cremaSensorClass::cremaSensorClass()
 	gpsData.valid = false;
 	gpsData.lat = 0;
 	gpsData.lng = 0;
+
+	return readSensors();
 }
 
-void cremaSensorClass::readSensors()
+bool cremaSensorClass::readSensors()
 {
-	digitalWrite(_PIN_LEN_READ_SENSOR_VALUES, HIGH);
+	digitalWrite(_PIN_LED_READ_SENSOR_VALUES, HIGH);
 
 	//readGPS();
 	Values[csLuminosidade] = _luxSensor.readLightLevel(true);
@@ -81,28 +100,110 @@ void cremaSensorClass::readSensors()
 	Values[csLog] = millis() / 1000;
 	//Values[csUltraVioleta] = _getUV();
 
-	if (abs(Values[csTemperatura]) > 50) 
-	{
-		uploadErrorLog(_ERR_SENSOR_READ, _ERR_UPLOAD_LOG_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
-	}
+	digitalWrite(_PIN_LED_READ_SENSOR_VALUES, LOW);
 
-	digitalWrite(_PIN_LEN_READ_SENSOR_VALUES, LOW);
+	return !(abs(Values[csTemperatura]) > 50);
 }
 
-void cremaSensorClass::uploadErrorLog(const int error, const bool restart, const bool saveConfig)
+void cremaSensorClass::publishHTTP(const cremaSensorsId first = csLuminosidade, const cremaSensorsId last = csUltraVioleta)
 {
-	Values[csLog] = error;                      // guarda valor do erro para subir para Ubidots
-	crema.IoT.publishHTTP(crema.sensor, csLog, csLog);
+	HTTPClient _http;
+	const char _mqttBroker[] = "http://things.ubidots.com";
 
-	if (saveConfig)
-	{
-		crema.config.setLastError(Values[csLog]);   // guarda erro no arquivo do ESP32 localmente para ser tratado na reinicialização
-	}
+	cremaSensorsId eCurrent;
+	char _payload[2024];            // sensor data values content
+	char _topic[250];			   // URL to post to
+	char _str_sensor_value[35];    // Space to store values to send
 
-	if (restart)
+	char _str_lat[35];             // Space to store latitude value
+	char _str_lng[35];             // Space to store longitude value
+
+	String _httpResponse;
+
+	digitalWrite(_PIN_LED_UPLOAD_SENSOR_VALUES, HIGH);
+
+	sprintf(_topic, "%s%s%s?token=%s", _mqttBroker, "/api/v1.6/devices/", DEVICE_LABEL, TOKEN);
+	sprintf(_payload, "%s", "{"); // Cleans the payload
+
+	for (int i = first; i <= last; i++)
 	{
-		crema.Restart(restart);
+		eCurrent = (cremaSensorsId)i;
+
+		/* convert float value do str. 4 is mininum width, 2 is precision; float value is copied onto str_sensor*/
+		dtostrf(Values[eCurrent], 10, 4, _str_sensor_value);
+
+		// Adds the variable label and its value
+		// inclui informação de GPS. como deve der a string
+		// {"temperatura":{"value":10,"context":{"lat":-19.648461,"lng":-43.901583}}}
+
+		// {"temperatura":
+		sprintf(_payload, "%s\"%s\":", _payload, Labels[eCurrent]);
+		if (gpsData.valid)
+		{
+			// ficará assim: {"temperatura":{"value":10,"context":{"lat":-19.648461,"lng":-43.901583}}
+			dtostrf(gpsData.lat, 10, 6, _str_lat);
+			dtostrf(gpsData.lng, 10, 6, _str_lng);
+			sprintf(_payload, "%s{\"value\":%s,\"context\":{\"lat\":%s,\"lng\":%s}}", _payload, _str_sensor_value, _str_lat, _str_lng);
+		}
+		else
+		{
+			// ficará assim: {"temperatura":23.4
+			sprintf(_payload, "%s%s", _payload, _str_sensor_value);
+		}
+
+		// se não é a última variável, ou seja, se ainda há variáveis a incluir, 
+		// adiciona o separador de variáveis ','
+		if (i < last) {
+			sprintf(_payload, "%s%s", _payload, ",");
+		}
+
 	}
+	sprintf(_payload, "%s%s", _payload, "}");
+
+	//Serial.print("payload=");
+	//Serial.println(_payload);
+
+	bool b = _http.begin(_topic);
+	_http.addHeader("Content-Type", "application/json");             //Specify content-type header
+	int httpResponseCode = _http.POST(_payload);   //Send the actual POST request
+
+	if (httpResponseCode > 0) {
+		_httpResponse = _http.getString();                       //Get the response to the request
+		Serial.print("HTTP return code: ");
+		Serial.print(httpResponseCode);   //Print return code
+		Serial.printf("  [JSON size: %d]\n", _httpResponse.length());
+		//Serial.println(_httpResponse);
+	}
+	else {
+		Serial.print("Error on sending POST: ");
+		Serial.println(httpResponseCode);
+	}
+	_http.end();  //Free resources
+
+	{
+		DynamicJsonBuffer  jsonBuffer(512);
+		JsonObject& root = jsonBuffer.parseObject(_httpResponse.c_str());
+		if (root.success())
+		{
+			for (int i = first; i <= last; i++)
+			{
+				eCurrent = (cremaSensorsId)i;
+				int rtnHttpPost = root[Labels[eCurrent]][0]["status_code"];
+				Serial.printf("%s = %.*f       [%d]", Labels[eCurrent], Decimals[eCurrent], Values[eCurrent], rtnHttpPost);
+				if (rtnHttpPost = 201)
+				{
+					Serial.println(" ok!");
+				}
+				else
+				{
+					Serial.println(" ERRO!");
+				}
+			}
+		}
+	}
+	displayGPSInfo();
+
+	digitalWrite(_PIN_LED_UPLOAD_SENSOR_VALUES, LOW);
 }
 
 void cremaSensorClass::readGPS()
@@ -250,8 +351,8 @@ float cremaSensorClass::_getUV()
 	//int uvLevelRef = _average_UV_AnalogRead(_CREMA_UV_PIN_REF);
 	//float outputVoltage = 3.3 / uvLevelRef * uvLevel;
 
-	//cremaSerial.print("outputVoltage=");
-	//cremaSerial.print(outputVoltage);
+	//Serial.print("outputVoltage=");
+	//Serial.print(outputVoltage);
 
 	//return _mapfloat_UV_Calc(outputVoltage, 0.99, 2.9, 0.0, 15.0);
 }
@@ -264,21 +365,21 @@ int cremaSensorClass::_average_UV_AnalogRead(gpio_num_t pin)
 	unsigned int runningValue = 0;
 	unsigned int r;
 
-	//cremaSerial.print("\n--------------------------\nPino: ");
-	//cremaSerial.println(pin);
+	//Serial.print("\n--------------------------\nPino: ");
+	//Serial.println(pin);
 	for (int x = 0; x < numberOfReadings; x++) {
 		r = analogRead(pin);
 		runningValue += r;
-		//cremaSerial.print("[Average] Leitura ");
-		//cremaSerial.print(x);
-		//cremaSerial.print("=");
-		//cremaSerial.println(r);
+		//Serial.print("[Average] Leitura ");
+		//Serial.print(x);
+		//Serial.print("=");
+		//Serial.println(r);
 	}
-	//cremaSerial.print("Total=");
-	//cremaSerial.println(runningValue);
+	//Serial.print("Total=");
+	//Serial.println(runningValue);
 	runningValue /= numberOfReadings;
-	//cremaSerial.print("Media=");
-	//cremaSerial.println(runningValue);
+	//Serial.print("Media=");
+	//Serial.println(runningValue);
 
 	return(runningValue);
 

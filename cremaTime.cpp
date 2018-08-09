@@ -6,7 +6,6 @@
 */
 
 #include "cremaTime.h"
-#include "cremaClass.h"
 
 cremaTimeClass::cremaTimeClass()
 {
@@ -167,11 +166,11 @@ bool cremaTimeClass::IsTimeToAction(cremaActions action, const bool showDot)
 		return true;
 	}
 	if ((showDot) && (m - _actionLastDot[action] >= 1)) {
-		crema.serial.print(".");
+		Serial.print(".");
 		_actionDotsDisplayed[action]++;
 		_actionLastDot[action] = m;
 	}
-	//cremaSerial.print(" [wait]\n");
+	//Serial.print(" [wait]\n");
 	return false;
 }
 

@@ -3,94 +3,101 @@
 // 
 
 #include "cremaClass.h"
+cremaClass::cremaClass()
+{
+	Serial.begin(115200);
 
-/*
-void ___ubidots_callback(char* topic, byte* payload, unsigned int length) {
-	crema.serial.print("\nMensagem recebida [");
-	crema.serial.print(topic);
-	crema.serial.print("] ");
-	for (int i = 0; i<length; i++) {
-		crema.serial.print((char)payload[i]);
+	visor = new cremaVisorClass();
+	config = new cremaConfigClass();
+	sensor = new cremaSensorClass();
+	time = new cremaTimeClass();
+
+	visor->showMessage(F("Inicializando"));
+
+	_initWiFi();
+
+	config->init();        // config.init tem que ser antes. para ler as configurações do arquivo
+	_wifi_autoConnect();
+	treatLastError();
+	if (!sensor->init())
+	{
+		_uploadErrorLog(_ERR_SENSOR_INIT, _ERR_UPLOAD_LOG_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
 	}
+
+	visor->clear();
+
+	Serial_GPS.flush();
 }
-*/
+
+cremaClass::~cremaClass()
+{
+	delete visor;
+	delete config;
+	delete sensor;
+	delete time;
+}
 
 void cremaClass::init()
 {
-	crema.visor.showMessage(F("Inicializando"));
-	crema.config.init();        // config.init tem que ser antes. para ler as configurações do arquivo
-	crema.wifi.autoConnect(crema.config);
-	crema.treatLastError();
-	crema.sensor.readSensors();
-	crema.visor.clear();
-
-	Serial_GPS.flush();
 }
 
 // esta função é chamada somente uma vês, no início do sistema, quando cria a classe cremaClass.
 void cremaClass::treatLastError()
 {
-	Serial.printf("Treating last error: %d\n", crema.config.Values[ccLastError].toInt());
-
-	for (size_t i = 0; i < ccCount; i++)
-	{
-		cremaConfigId key = (cremaConfigId)i;
-		Serial.printf("%s=%s\n", crema.config.nameKeys[key].c_str(), crema.config.Values[key].c_str());
-		Serial.printf("%s=%s\n", config.nameKeys[key].c_str(), config.Values[key].c_str());
-	}
+	Serial.printf("Treating last error: %d\n", config->Values[ccLastError].toInt());
 
 	// maior que 4 indica conteúdo inválido, pois a quantidade maior de caracteres é 4 (-999)
-	if (crema.config.Values[ccLastError].length() > 4)
+	if (config->Values[ccLastError].length() > 4)
 	{
 		Serial.println(F("Invalid last error! (length > 4)\n"));
-		crema.config.setLastError(_ERR_NOERROR);
+		config->setLastError(_ERR_NOERROR);
 	}
-	else if (crema.config.Values[ccLastError].toInt() == _ERR_SENSOR_READ)
+	else if (config->Values[ccLastError].toInt() == _ERR_SENSOR_READ)
 	{
 		Serial.println(F("Sensor reading error. Wait 5 seconds to inicialize...\n"));
 		delay(5000);
 		// necessário fazer upload de novo valor para gerar trigger de evento no Ubidots
-		crema.sensor.uploadErrorLog(_ERR_NOERROR, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
+		_uploadErrorLog(_ERR_NOERROR, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
+		config->setLastError(_ERR_NOERROR);
 	}
-	else if (config.Values[ccLastError].toInt() == _ERR_NOERROR)
+	else if (config->Values[ccLastError].toInt() == _ERR_NOERROR)
 	{
 		Serial.println(F("Uncrontoled restart.\n"));
-		crema.sensor.uploadErrorLog(_ERR_NOT_CONTROLED_RESTART, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_DONT_SAVE_CONFIG);
-		crema.config.setLastError(_ERR_NOERROR);
+		_uploadErrorLog(_ERR_NOT_CONTROLED_RESTART, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_DONT_SAVE_CONFIG);
 	}
 
-	Serial.printf("\nNew error setted: %s\n", crema.config.Values[ccLastError].c_str());
+	Serial.printf("\nNew error setted: %s\n", config->Values[ccLastError].c_str());
 }
 
 void cremaClass::ShowSensorValues()
 {
-	if (crema.time.IsTimeToAction(caShowSensorValues)) {
+	if (time->IsTimeToAction(caShowSensorValues)) {
 	
-		crema.visor.clearLine(0);
-		crema.visor.write(crema.sensor.Values[csTemperatura], crema.sensor.Decimals[csTemperatura]);
-		crema.visor.write("C    ");
+		visor->clearLine(0);
+		visor->write(sensor->Values[csTemperatura], sensor->Decimals[csTemperatura]);
+		visor->write("C    ");
 
-		crema.visor.write(crema.sensor.Values[csUmidade], crema.sensor.Decimals[csUmidade]);
-		crema.visor.write("%");
+		visor->write(sensor->Values[csUmidade], sensor->Decimals[csUmidade]);
+		visor->write("%");
 
 		if (_whatShow) {
-			crema.visor.clearLine(2);
-			crema.visor.write(crema.sensor.Values[csPressao], crema.sensor.Decimals[csPressao]);
-			crema.visor.write("mP  ");
+			visor->clearLine(2);
+			visor->write(sensor->Values[csPressao], sensor->Decimals[csPressao]);
+			visor->write("mP  ");
 
-			crema.visor.write(crema.sensor.Values[csAltitude], crema.sensor.Decimals[csAltitude]);
-			crema.visor.write("m");
+			visor->write(sensor->Values[csAltitude], sensor->Decimals[csAltitude]);
+			visor->write("m");
 
-			crema.visor.clearLine(3);
+			visor->clearLine(3);
 		}
 		else {
-			crema.visor.clearLine(2);
-			crema.visor.write(crema.sensor.Values[csLuminosidade], crema.sensor.Decimals[csLuminosidade]);
-			crema.visor.writeln(" luz");
+			visor->clearLine(2);
+			visor->write(sensor->Values[csLuminosidade], sensor->Decimals[csLuminosidade]);
+			visor->writeln(" luz");
 
-			crema.visor.clearLine(3);
-			crema.visor.write(crema.sensor.Values[csUltraVioleta], crema.sensor.Decimals[csUltraVioleta]);
-			crema.visor.write(" uv");
+			visor->clearLine(3);
+			visor->write(sensor->Values[csUltraVioleta], sensor->Decimals[csUltraVioleta]);
+			visor->write(" uv");
 		}
 		_whatShow = !_whatShow;
 	}
@@ -98,8 +105,8 @@ void cremaClass::ShowSensorValues()
 
 void cremaClass::ShowDateTime()
 {
-	if (crema.time.IsTimeToAction(caShowDateTime, true)) {
-		crema.time.readTime();
+	if (time->IsTimeToAction(caShowDateTime, true)) {
+		time->readTime();
 		if (_timeSep == ":") {
 			_timeSep = ".";
 		}
@@ -107,17 +114,198 @@ void cremaClass::ShowDateTime()
 			_timeSep = ":";
 		}
 
-		crema.visor.clearLine(5);
-		crema.visor.write(crema.time.strDMY("/", true, true, false));
-		crema.visor.write(" - ");
-		crema.visor.write(crema.time.strHMS(_timeSep, true, true, false));
+		visor->clearLine(5);
+		visor->write(time->strDMY("/", true, true, false));
+		visor->write(" - ");
+		visor->write(time->strHMS(_timeSep, true, true, false));
 	}
 }
 
 void cremaClass::ReadSensors()
 {
-	if (crema.time.IsTimeToAction(caReadSensors)) {
-		crema.sensor.readSensors();
+	if (time->IsTimeToAction(caReadSensors))
+	{
+		if (!sensor->readSensors())   // TODO: false se erro na leitura de sensores (06/08/2018: Temp > 50)
+		{
+			_uploadErrorLog(_ERR_SENSOR_READ, _ERR_UPLOAD_LOG_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
+		}
+	}
+}
+
+void cremaClass::_uploadToCloud(const cremaSensorsId first = csLuminosidade, const cremaSensorsId last = csUltraVioleta)
+{
+	//todo: verificação de conexão antes da chamada
+	if (!WiFi.isConnected()) {
+		config->setForceConfig(false);     // se necessário iniciar webServer, informar apenas dados de WiFi
+		_wifi_autoConnect();
+	}
+
+	sensor->publishHTTP(first, last);
+}
+
+//callback que indica que o ESP entrou no modo AP
+void cremaClass::__wifi_configModeCallback(WiFiManager *myWiFiManager) {
+	//  Serial.println("Entered config mode");
+	Serial.println("Entrou no modo de configuracao");
+	Serial.println(WiFi.softAPIP().toString()); //imprime o IP do AP
+	Serial.println(myWiFiManager->getConfigPortalSSID()); //imprime o SSID criado da rede
+
+	cremaClass::__displayConfigMode();
+	cremaClass::__webServerConfigSaved = false;
+}
+
+//callback que indica que salvou as configurações de rede
+void cremaClass::__wifi_saveConfigCallback() {
+	Serial.println("Configuracao salva");
+	Serial.println(WiFi.softAPIP().toString()); //imprime o IP do AP
+	
+	cremaClass::__webServerConfigSaved = true;
+}
+
+void cremaClass::__displayConfigMode()
+{
+	cremaVisorClass v;
+	
+	v.showMessage("_CONFIGURACAO_");
+	v.clearLine(1);
+	v.clearLine(2); v.write("Conect. a rede");
+	v.clearLine(3); v.write("   \""); v.write(_CREMA_SSID_AP); v.write("\"");
+	v.clearLine(4); v.write("pelo computador");
+	v.clearLine(5); v.write("ou celular");
+}
+
+void cremaClass::_initWiFi()
+{
+	//wifi_init_config_t config = WIFI_INIT_CONFIG_DEFAULT(); 
+	//esp_wifi_init(&config);
+	//esp_wifi_start();
+	//delay(500);
+
+	pinMode(CREMA_WiFi_Manager_PIN, INPUT);
+
+	//utilizando esse comando, as configurações são apagadas da memória
+	//caso tiver salvo alguma rede para conectar automaticamente, ela é apagada.
+	//_wifiManager.resetSettings();
+
+	//por padrão as mensagens de Debug vão aparecer no monitor serial, caso queira desabilitá-la
+	//utilize o comando setDebugOutput(false);
+	_wifiManager.setDebugOutput(false);
+
+	//caso queira iniciar o Portal para se conectar a uma rede toda vez, sem tentar conectar 
+	//a uma rede salva anteriormente, use o startConfigPortal em vez do autoConnect
+	//  _wifiManager.startConfigPortal(char const *apName, char const *apPassword = NULL);
+
+	//setar IP fixo para o ESP (deve-se setar antes do autoConnect)
+	//  setAPStaticIPConfig(ip, gateway, subnet);
+	//  _wifiManager.setAPStaticIPConfig(IPAddress(192,168,16,2), IPAddress(192,168,16,1), IPAddress(255,255,255,0)); //modo AP
+
+	//  setSTAStaticIPConfig(ip, gateway, subnet);
+	//  _wifiManager.setSTAStaticIPConfig(IPAddress(192,168,0,99), IPAddress(192,168,0,1), IPAddress(255,255,255,0)); //modo estação
+
+	//callback para quando entra em modo de configuração AP
+	_wifiManager.setAPCallback(__wifi_configModeCallback);
+
+	//callback para quando se conecta em uma rede, ou seja, quando passa a trabalhar em modo estação
+	_wifiManager.setSaveConfigCallback(__wifi_saveConfigCallback);
+
+	//_wifiManager.autoConnect(_CREMA_SSID_AP, ""); //cria uma rede sem senha
+	//_wifiManager.autoConnect(); //gera automaticamente o SSID com o chip ID do ESP e sem senha
+
+	//  _wifiManager.setMinimumSignalQuality(10); // % minima para ele mostrar no SCAN
+
+	//_wifiManager.setRemoveDuplicateAPs(false); //remover redes duplicadas (SSID iguais)
+	//_wifiManager.resetSettings();
+	_wifiManager.setConfigPortalTimeout(600); //timeout para o ESP nao ficar esperando para ser configurado para sempre
+}
+
+bool cremaClass::_wifi_autoConnect()
+{
+	if (!config->getConfigOk() || config->getForceConfig())
+	{
+		config->setForceConfig(false);
+
+		WiFiManagerParameter * _wifiParam[ccCount];
+
+		// The extra parameters to be configured (can be either global or just in the setup)
+		// After connecting, parameter.getValue() will get you the configured value
+		// id/name placeholder/prompt default length
+		for (size_t i = 0; i < ccCount; i++)
+		{
+			cremaConfigId key = cremaConfigId(i);
+			if (config->Imputable[key])
+			{
+				_wifiParam[key] = new WiFiManagerParameter(config->nameKeys[key].c_str(), config->descKeys[key].c_str(), config->Values[key].c_str(), _CREMA_CFG_VALUE_SIZE);
+				//WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 40);
+
+				//add all your parameters here
+				_wifiManager.addParameter(_wifiParam[key]);
+			}
+		}
+		_wifi_startWebServer();
+
+		// todo: utilizar variável global
+		if (__webServerConfigSaved)
+		{
+			for (size_t i = 0; i < ccCount; i++)
+			{
+				cremaConfigId key = cremaConfigId(i);
+				if (config->Imputable[key])
+				{
+					config->Values[key] = "";
+					config->Values[key].concat(_wifiParam[key]->getValue());
+				}
+			}
+			config->saveConfig();
+		}
+
+		for (size_t i = 0; i < ccCount; i++)
+		{
+			cremaConfigId key = cremaConfigId(i);
+			if (config->Imputable[key])
+			{
+				delete _wifiParam[key];
+			}
+		}
+	}
+	else
+	{
+		Serial.print("\nConectando ao ultimo WiFi\n");
+
+		visor->clearLine(2);
+		visor->write("Conectando");
+		visor->clearLine(3);
+		visor->write("WiFi...");
+
+		_wifiManager.autoConnect(_CREMA_SSID_AP, "");
+
+		visor->clearLine(4);
+		visor->write(_wifiManager.getSSID());
+		delay(1500);
+	}
+	visor->clear();
+}
+
+void cremaClass::_wifi_startWebServer()
+{
+	if (!_wifiManager.startConfigPortal(_CREMA_SSID_AP)) {
+		Restart();
+	}
+	visor->clear();
+}
+
+void cremaClass::_uploadErrorLog(const int error, const bool restart, const bool saveConfig)
+{
+	sensor->Values[csLog] = error;                      // guarda valor do erro para subir para Ubidots
+	_uploadToCloud(csLog, csLog);
+
+	if (saveConfig)
+	{
+		config->setLastError(sensor->Values[csLog]);   // guarda erro no arquivo do ESP32 localmente para ser tratado na reinicialização
+	}
+
+	if (restart)
+	{
+		Restart();
 	}
 }
 
@@ -129,45 +317,45 @@ void cremaClass::doGPS()
 
 void cremaClass::_readGPS()
 {
-	if (crema.time.IsTimeToAction(caReadGPS))
+	if (time->IsTimeToAction(caReadGPS))
 	{
-		crema.sensor.readGPS();
+		sensor->readGPS();
 	}
 }
 
 void cremaClass::_testGPSSignal()
 {
-	if (crema.time.IsTimeToAction(caTestGPSSignal))
+	if (time->IsTimeToAction(caTestGPSSignal))
 	{
-		if (!crema.sensor.gpsData.valid)
+		if (!sensor->gpsData.valid)
 		{
-			crema.sensor.uploadErrorLog(_ERR_SENSOR_GPS_POOR_SIGNAL, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_DONT_SAVE_CONFIG);
+			_uploadErrorLog(_ERR_SENSOR_GPS_POOR_SIGNAL, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_DONT_SAVE_CONFIG);
 		}
 	}
 }
 
- void sayDate() 
+ void cremaClass::_sayDate()
 {
-	crema.serial.print("\n");
-	crema.serial.print(crema.time.strDateTimeExtenso());
-	crema.serial.print("\n");
+	Serial.print("\n");
+	Serial.print(time->strDateTimeExtenso());
+	Serial.print("\n");
 }
 
 
 
  //void __uploadSensorValues(void *parms)
  //{
-	//crema.IoT.publishHTTP(crema.sensor, _IoT_Update_IniSensor, _IoT_Update_FimSensor);
+	//IoT.publishHTTP(sensor, _IoT_Update_IniSensor, _IoT_Update_FimSensor);
 	//vTaskDelete(NULL);
 	//return;
  //}
 
 void cremaClass::UploadSensorValues()
 {
-	if (crema.time.IsTimeToAction(caUploadSensorsValues)) {
-		sayDate();
+	if (time->IsTimeToAction(caUploadSensorsValues)) {
+		_sayDate();
 		{
-			crema.IoT.publishHTTP(crema.sensor, _IoT_Update_IniSensor, _IoT_Update_FimSensor);
+			_uploadToCloud(_IoT_Update_IniSensor, _IoT_Update_FimSensor);
 			// TODO Ler sensor em outra task do processador
 			// https://www.dobitaobyte.com.br/selecionar-uma-cpu-para-executar-tasks-com-esp32/
 			//xTaskHandle * taskUploadSensorValue;
@@ -177,10 +365,8 @@ void cremaClass::UploadSensorValues()
 	}
 }
 
-void cremaClass::Restart(const bool force)
+void cremaClass::Restart()
 {
-	if (force) {
-		//crema.IoT.publishHTTP(crema.sensor, csLog, csLog);  // upload é feito pela função uploadErrorLog()
-		esp_restart();
-	}
+	//IoT.publishHTTP(sensor, csLog, csLog);  // upload é feito pela função uploadErrorLog()
+	esp_restart();
 }
