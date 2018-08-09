@@ -5,18 +5,17 @@
 #include "cremaClass.h"
 cremaClass::cremaClass()
 {
-	_initWiFi();
-}
-
-cremaClass::~cremaClass()
-{
-}
-
-void cremaClass::init()
-{
 	Serial.begin(115200);
-	Serial.println(visor->_col);
+
+	visor = new cremaVisorClass();
+	config = new cremaConfigClass();
+	sensor = new cremaSensorClass();
+	time = new cremaTimeClass();
+
 	visor->showMessage(F("Inicializando"));
+
+	_initWiFi();
+
 	config->init();        // config.init tem que ser antes. para ler as configurações do arquivo
 	_wifi_autoConnect();
 	treatLastError();
@@ -28,6 +27,18 @@ void cremaClass::init()
 	visor->clear();
 
 	Serial_GPS.flush();
+}
+
+cremaClass::~cremaClass()
+{
+	delete visor;
+	delete config;
+	delete sensor;
+	delete time;
+}
+
+void cremaClass::init()
+{
 }
 
 // esta função é chamada somente uma vês, no início do sistema, quando cria a classe cremaClass.
@@ -120,7 +131,7 @@ void cremaClass::ReadSensors()
 {
 	if (time->IsTimeToAction(caReadSensors))
 	{
-		if (!sensor->readSensors())   // retorna false se erro na leitura de sensores (06/08/2018: Temp > 50)
+		if (!sensor->readSensors())   // TODO: false se erro na leitura de sensores (06/08/2018: Temp > 50)
 		{
 			_uploadErrorLog(_ERR_SENSOR_READ, _ERR_UPLOAD_LOG_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
 		}
@@ -144,16 +155,14 @@ void _wifi_configModeCallback(WiFiManager *myWiFiManager) {
 	Serial.println("Entrou no modo de configuracao");
 	Serial.println(WiFi.softAPIP().toString()); //imprime o IP do AP
 	Serial.println(myWiFiManager->getConfigPortalSSID()); //imprime o SSID criado da rede
-
-	//crema.displayConfigMode();
-	//crema.webServerConfigSaved = false;
+	//cremaClass::webServerConfigSaved = false;
 }
 
 //callback que indica que salvou as configurações de rede
 void _wifi_saveConfigCallback() {
 	Serial.println("Configuracao salva");
 	Serial.println(WiFi.softAPIP().toString()); //imprime o IP do AP
-	//crema.webServerConfigSaved = true;
+	//cremaClass::webServerConfigSaved = true;
 }
 
 void cremaClass::_initWiFi()
@@ -353,7 +362,8 @@ void cremaClass::Restart()
 	esp_restart();
 }
 
-void cremaClass::displayConfigMode() {
+void cremaClass::displayConfigMode() 
+{
 	visor->showMessage("_CONFIGURACAO_");
 	visor->clearLine(1);
 	visor->clearLine(2); visor->write("Conect. a rede");

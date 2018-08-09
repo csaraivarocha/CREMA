@@ -46,15 +46,15 @@
 
 class cremaClass
 {
-protected:
+protected:  // wifi
 	WiFiManager _wifiManager;
 	void _initWiFi();
 	bool _wifi_autoConnect();
 	void _wifi_startWebServer();
-protected:
+protected:  // cloud
 	void _uploadErrorLog(const int error, const bool restart, const bool saveConfig);
 	void _uploadToCloud(const cremaSensorsId first, const cremaSensorsId last);
-protected:
+protected:  
 	bool _whatShow = true;
 	bool _whatUpload = true;
 	char *_timeSep = " ";
@@ -73,11 +73,13 @@ public:
 	void UploadSensorValues();
 	void Restart();
 	void displayConfigMode();
-	bool webServerConfigSaved = false;
+	bool webServerConfigSaved;
 	cremaSensorClass *sensor;
 	cremaTimeClass *time;
-	cremaVisorClass *visor = new cremaVisorClass();
+	cremaVisorClass *visor;
 	cremaConfigClass *config;
 };
+
+static cremaClass *crema;
 
 #endif

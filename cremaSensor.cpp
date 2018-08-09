@@ -162,7 +162,7 @@ void cremaSensorClass::publishHTTP(const cremaSensorsId first = csLuminosidade, 
 	//Serial.print("payload=");
 	//Serial.println(_payload);
 
-	_http.begin(_topic);
+	bool b = _http.begin(_topic);
 	_http.addHeader("Content-Type", "application/json");             //Specify content-type header
 	int httpResponseCode = _http.POST(_payload);   //Send the actual POST request
 
