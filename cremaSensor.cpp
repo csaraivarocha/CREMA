@@ -108,7 +108,7 @@ bool cremaSensorClass::readSensors()
 void cremaSensorClass::publishHTTP(const cremaSensorsId first = csLuminosidade, const cremaSensorsId last = csUltraVioleta)
 {
 	HTTPClient _http;
-	const String _mqttBroker = F("http://things.ubidots.com");
+	const char _mqttBroker[] = "http://things.ubidots.com";
 
 	cremaSensorsId eCurrent;
 	char _payload[2024];            // sensor data values content

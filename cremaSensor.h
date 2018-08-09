@@ -14,25 +14,24 @@
 	#include "WProgram.h"
 #endif
 
-
-// sensors and GPS
-#include <BH1750.h>            // Luminosidade
-#include <Adafruit_BME280.h>   // umidade, temperatura e pressão
-#include <HardwareSerial.h>    // GPS: fazer conexão com o módulo e efetuar leitura
-#include <TinyGPS++.h>         // GPS: para validar as strings lidas do módulo GPS
-
 // upload to IoT cloud
 #include <WiFi.h>
-//#include <PubSubClient.h>
+//#include <PubSubClient.h>  // para MQTT
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+
+// sensors
+#include <BH1750.h>            // Luminosidade
+#include <Adafruit_BME280.h>   // umidade, temperatura e pressão
+// GPS
+#include <HardwareSerial.h>    // GPS: fazer conexão com o módulo e efetuar leitura
+#include <TinyGPS++.h>         // GPS: para validar as strings lidas do módulo GPS
 
 // ubidots configs
 #define DEVICE_LABEL "esp32_bh"                    // Assig the device label
 #define TOKEN "A1E-nuWgdhFqYZUQAIqItVXN67ssBhtJYV" // Put your Ubidots' TOKEN
 
 // cremaPinos.h deve ser incluído por último
-#include "cremaTime.h"
 #include "cremaErr.h"
 #include "cremaPinos.h"
 

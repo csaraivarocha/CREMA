@@ -57,13 +57,18 @@ protected:  // cloud
 protected:  
 	bool _whatShow = true;
 	bool _whatUpload = true;
-	char *_timeSep = " ";
 	void _readGPS();
 	void _testGPSSignal();
 	void _sayDate();
+public:  // wifi static functions/variables
+	static void __wifi_configModeCallback(WiFiManager * myWiFiManager);  // callback function
+	static void __wifi_saveConfigCallback();  // callback function
+	static void __displayConfigMode();
+	static bool __webServerConfigSaved;
 public:
 	cremaClass();
 	~cremaClass();
+	char *_timeSep = " ";
 	void init();
 	void treatLastError();
 	void ShowSensorValues();
@@ -72,8 +77,6 @@ public:
 	void doGPS();
 	void UploadSensorValues();
 	void Restart();
-	void displayConfigMode();
-	bool webServerConfigSaved;
 	cremaSensorClass *sensor;
 	cremaTimeClass *time;
 	cremaVisorClass *visor;

@@ -3,6 +3,9 @@
 #define CREMA_TECNICAL_DEBUG_NO
 
 
+bool cremaClass::__webServerConfigSaved = false;
+
+
 void setup()
 {
 #ifdef CREMA_TECNICAL_DEBUG_YES

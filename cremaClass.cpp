@@ -46,12 +46,6 @@ void cremaClass::treatLastError()
 {
 	Serial.printf("Treating last error: %d\n", config->Values[ccLastError].toInt());
 
-	for (size_t i = 0; i < ccCount; i++)
-	{
-		cremaConfigId key = (cremaConfigId)i;
-		Serial.printf("%s=%s\n", config->nameKeys[key].c_str(), config->Values[key].c_str());
-	}
-
 	// maior que 4 indica conteúdo inválido, pois a quantidade maior de caracteres é 4 (-999)
 	if (config->Values[ccLastError].length() > 4)
 	{
@@ -64,12 +58,12 @@ void cremaClass::treatLastError()
 		delay(5000);
 		// necessário fazer upload de novo valor para gerar trigger de evento no Ubidots
 		_uploadErrorLog(_ERR_NOERROR, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
+		config->setLastError(_ERR_NOERROR);
 	}
 	else if (config->Values[ccLastError].toInt() == _ERR_NOERROR)
 	{
 		Serial.println(F("Uncrontoled restart.\n"));
 		_uploadErrorLog(_ERR_NOT_CONTROLED_RESTART, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_DONT_SAVE_CONFIG);
-		config->setLastError(_ERR_NOERROR);
 	}
 
 	Serial.printf("\nNew error setted: %s\n", config->Values[ccLastError].c_str());
@@ -150,19 +144,34 @@ void cremaClass::_uploadToCloud(const cremaSensorsId first = csLuminosidade, con
 }
 
 //callback que indica que o ESP entrou no modo AP
-void _wifi_configModeCallback(WiFiManager *myWiFiManager) {
+void cremaClass::__wifi_configModeCallback(WiFiManager *myWiFiManager) {
 	//  Serial.println("Entered config mode");
 	Serial.println("Entrou no modo de configuracao");
 	Serial.println(WiFi.softAPIP().toString()); //imprime o IP do AP
 	Serial.println(myWiFiManager->getConfigPortalSSID()); //imprime o SSID criado da rede
-	//cremaClass::webServerConfigSaved = false;
+
+	cremaClass::__displayConfigMode();
+	cremaClass::__webServerConfigSaved = false;
 }
 
 //callback que indica que salvou as configurações de rede
-void _wifi_saveConfigCallback() {
+void cremaClass::__wifi_saveConfigCallback() {
 	Serial.println("Configuracao salva");
 	Serial.println(WiFi.softAPIP().toString()); //imprime o IP do AP
-	//cremaClass::webServerConfigSaved = true;
+	
+	cremaClass::__webServerConfigSaved = true;
+}
+
+void cremaClass::__displayConfigMode()
+{
+	cremaVisorClass v;
+	
+	v.showMessage("_CONFIGURACAO_");
+	v.clearLine(1);
+	v.clearLine(2); v.write("Conect. a rede");
+	v.clearLine(3); v.write("   \""); v.write(_CREMA_SSID_AP); v.write("\"");
+	v.clearLine(4); v.write("pelo computador");
+	v.clearLine(5); v.write("ou celular");
 }
 
 void cremaClass::_initWiFi()
@@ -194,10 +203,10 @@ void cremaClass::_initWiFi()
 	//  _wifiManager.setSTAStaticIPConfig(IPAddress(192,168,0,99), IPAddress(192,168,0,1), IPAddress(255,255,255,0)); //modo estação
 
 	//callback para quando entra em modo de configuração AP
-	_wifiManager.setAPCallback(_wifi_configModeCallback);
+	_wifiManager.setAPCallback(__wifi_configModeCallback);
 
 	//callback para quando se conecta em uma rede, ou seja, quando passa a trabalhar em modo estação
-	_wifiManager.setSaveConfigCallback(_wifi_saveConfigCallback);
+	_wifiManager.setSaveConfigCallback(__wifi_saveConfigCallback);
 
 	//_wifiManager.autoConnect(_CREMA_SSID_AP, ""); //cria uma rede sem senha
 	//_wifiManager.autoConnect(); //gera automaticamente o SSID com o chip ID do ESP e sem senha
@@ -235,7 +244,7 @@ bool cremaClass::_wifi_autoConnect()
 		_wifi_startWebServer();
 
 		// todo: utilizar variável global
-		if (webServerConfigSaved)
+		if (__webServerConfigSaved)
 		{
 			for (size_t i = 0; i < ccCount; i++)
 			{
@@ -360,14 +369,4 @@ void cremaClass::Restart()
 {
 	//IoT.publishHTTP(sensor, csLog, csLog);  // upload é feito pela função uploadErrorLog()
 	esp_restart();
-}
-
-void cremaClass::displayConfigMode() 
-{
-	visor->showMessage("_CONFIGURACAO_");
-	visor->clearLine(1);
-	visor->clearLine(2); visor->write("Conect. a rede");
-	visor->clearLine(3); visor->write("   \""); visor->write(_CREMA_SSID_AP); visor->write("\"");
-	visor->clearLine(4); visor->write("pelo computador");
-	visor->clearLine(5); visor->write("ou celular");
 }
