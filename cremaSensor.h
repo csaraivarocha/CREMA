@@ -77,9 +77,6 @@ private:
 	bool _gpsOk();
 	void _saveGPS();
 	byte _gpsReadesWithError = 0;
-
-	// IoT
-	HTTPClient _http;
 public:
 	cremaSensorClass();
 	bool init();
