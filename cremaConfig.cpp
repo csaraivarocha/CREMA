@@ -15,8 +15,8 @@ cremaConfigClass::cremaConfigClass()
 
 void cremaConfigClass::init()
 {
-	if (!SPIFFS.begin()) {
-		Serial.println(F("SPIFFS Mount Failed"));
+	if (!SPIFFS.begin()) 
+	{
 		return;
 	}
 
@@ -29,18 +29,16 @@ bool cremaConfigClass::readConfig()
 {
 	bool rtn = false;
 
-	Serial.print(F("CREMA ler config: ")); Serial.println(_CREMA_CFG_FILE);
-
 	if (!SPIFFS.exists(_CREMA_CFG_FILE))
 	{
-		Serial.println(F("> arquivo nao existe."));
+		//TODO: criar aquivo padrão  //utilizar mensagem de debug.println(F("> arquivo nao existe."));
 	}
 	else
 	{
 		File configFile = SPIFFS.open(_CREMA_CFG_FILE);
 		if (!configFile)
 		{
-			Serial.println(F("> falha ao abrir para leitura."));
+			//TODO: utilizar padrão  //utilizar mensagem de debug.println(F("> falha ao abrir para leitura."));
 		}
 		else
 		{
@@ -54,7 +52,7 @@ bool cremaConfigClass::readConfig()
 
 			if (!root.success())
 			{
-				Serial.println(F("> conteudo invalido do arquivo."));
+				// TODO: utilizar configuração padrão  // utilizar mensagem de debug.println(F("> conteudo invalido do arquivo."));
 			}
 			else
 			{
@@ -76,7 +74,6 @@ bool cremaConfigClass::readConfig()
 					{
 						Values[key].concat(_defaultValue[key]);
 					}
-					Serial.printf("\n%s=%s", nameKeys[key].c_str(), Values[key].c_str());
 				}
 
 				rtn = true;
@@ -101,7 +98,6 @@ bool cremaConfigClass::saveConfig()
 	DynamicJsonBuffer jsonBuffer;
 	JsonObject& json = jsonBuffer.createObject();
 
-	Serial.println(">>Save config");
 	for (size_t i = 0; i < ccCount; i++)
 	{
 		cremaConfigId key = (cremaConfigId)i;
@@ -109,17 +105,13 @@ bool cremaConfigClass::saveConfig()
 		//json[nameKeys[key]] = Values[key];
 		String e = _encode(key);
 		json[nameKeys[key]] = e;
-		Serial.printf("%s=%s (%s)\n", nameKeys[key].c_str(), Values[key].c_str(), e.c_str());
 	}
-
-	Serial.print(F("CREMA gravar config: ")); Serial.println(_CREMA_CFG_FILE);
 
 	File configFile = SPIFFS.open(_CREMA_CFG_FILE, "w");
 	if (!configFile) {
-		Serial.println(F("> falha ao abrir arquivo para escrita."));
+		// TODO: utilizar config default   // utilizar mensagem de debug.println(F("> falha ao abrir arquivo para escrita."));
 	}
-
-	json.printTo(Serial);
+	//json.printTo(Serial);
 	json.printTo(configFile);
 	configFile.close();
 }

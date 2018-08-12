@@ -35,8 +35,6 @@ private:
 	String _addStr(byte v);
 	RTC_DS3231 rtc;
 	long _lastAction[caCount] = { 0,0,0,0,0,0 };             // última vez que foi executada a ação
-	byte _actionDotsDisplayed[caCount] = { 0,0,0,0,0,0 };    // quantidade de "." mostrada
-	long _actionLastDot[caCount];                            // última vez que foi mostrado um "."
 	const long _actionTime[caCount] = { 4,1,5,15,2,180 };    // tempo em segundos para executar cada ação
 
 public:

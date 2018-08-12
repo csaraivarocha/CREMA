@@ -59,8 +59,7 @@ protected:
 	bool _whatUpload = true;
 	void _readGPS();
 	void _testGPSSignal();
-	void _sayDate();
-public:  // wifi static functions/variables
+public:  // wifi static functions and variables
 	static void __wifi_configModeCallback(WiFiManager * myWiFiManager);  // callback function
 	static void __wifi_saveConfigCallback();  // callback function
 	static void __displayConfigMode();

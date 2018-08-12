@@ -14,8 +14,6 @@ cremaTimeClass::cremaTimeClass()
 	for (int i = 0; i < caCount; i++) {
 		cremaActions a = cremaActions(i);
 		_lastAction[a] = millis() - 10000;  // incializa com -10 segundos. para executar ações na primeira passada
-		_actionDotsDisplayed[a] = 0;
-		_actionLastDot[a] = 0;
 	}
 }
 
@@ -23,7 +21,7 @@ String cremaTimeClass::_addStr(byte v)
 {
 	String rtn = "";
 	if (v < 10) {
-		rtn = "0";
+		rtn = F("0");
 	}
 	rtn += String(v);
 	return rtn;
@@ -45,14 +43,14 @@ void cremaTimeClass::readTime()
 String cremaTimeClass::NomeDiaDaSemana()
 {
 	switch (DateTimeSaved.dayOfTheWeek()) {
-	case 0: return("Domingo");
-	case 1: return("Segunda-feira");
-	case 2: return("Terça-feira");
-	case 3: return("Quarta-feira");
-	case 4: return("Quinta-feira");
-	case 5: return("Sexta-feira");
-	case 6: return("Sábado");
-	default: return("?");
+	case 0: return(F("Domingo"));
+	case 1: return(F("Segunda-feira"));
+	case 2: return(F("Terça-feira"));
+	case 3: return(F("Quarta-feira"));
+	case 4: return(F("Quinta-feira"));
+	case 5: return(F("Sexta-feira"));
+	case 6: return(F("Sábado"));
+	default: return(F("?"));
 	}
 }
 
@@ -117,19 +115,19 @@ String cremaTimeClass::strDateTimeExtenso(const bool lTime)
 	rtn += ", ";
 
 	rtn += DateTimeSaved.day();
-	rtn += " de ";
+	rtn += F(" de ");
 	rtn += NomeMes();
-	rtn += " de ";
+	rtn += F(" de ");
 	rtn += DateTimeSaved.year();
-	rtn += ". ";
+	rtn += F(". ");
 
 	if (lTime) {
 		rtn += DateTimeSaved.hour();
-		rtn += "H ";
+		rtn += F("H ");
 		rtn += DateTimeSaved.minute();
-		rtn += "min ";
+		rtn += F("min ");
 		rtn += DateTimeSaved.second();
-		rtn += "seg.";
+		rtn += F("seg.");
 	}
 	return rtn;
 }
@@ -137,58 +135,36 @@ String cremaTimeClass::strDateTimeExtenso(const bool lTime)
 bool cremaTimeClass::IsTimeToAction(cremaActions action, const bool showDot)
 {
 	unsigned long m = millis() / 1000;
-/*
-	Serial.print(action);
-	//Serial.print("\nDateTimeSaved.seconstime()=");
-	Serial.print(" ");
-	Serial.print(m);
-	//Serial.print("\n_lastAction[action]=");
-	Serial.print(" ");
-	Serial.print(_lastAction[action]);
-	//Serial.print("\n_actionTime[action]=");
-	Serial.print(" ");
-	Serial.print(_actionTime[action]);
-	//Serial.print("\nsubtracao=");
-	Serial.print(" (");
-	Serial.print(m - _lastAction[action]);
-*/
+
 	if (m < _lastAction[action]) {
 		// reset controls. because millis() will overflow (go back to zero), after approximately 50 days.
 		// this peace of code treats this situation
 		_lastAction[action] = 0;
-		_actionLastDot[action] = 0;
 	}
 
 	if ((m - _lastAction[action]) >= _actionTime[action]) {
 		_lastAction[action] = m;
-		_actionDotsDisplayed[action] = 0;
-		//Serial.print(" [run]\n");
 		return true;
 	}
-	if ((showDot) && (m - _actionLastDot[action] >= 1)) {
-		Serial.print(".");
-		_actionDotsDisplayed[action]++;
-		_actionLastDot[action] = m;
-	}
-	//Serial.print(" [wait]\n");
+
 	return false;
 }
 
 String cremaTimeClass::NomeMes()
 {
 	switch (DateTimeSaved.month()) {
-	case 1: return("Janeiro");
-	case 2: return("Fevereiro");
-	case 3: return("Março");
-	case 4: return("Abril");
-	case 5: return("Maio");
-	case 6: return("Junho");
-	case 7: return("Julho");
-	case 8: return("Agosto");
-	case 9: return("Setembro");
-	case 10: return("Outubro");
-	case 11: return("Novembro");
-	case 12: return("Dezembro");
-	default: return("?");
+	case 1: return(F("Janeiro"));
+	case 2: return(F("Fevereiro"));
+	case 3: return(F("Março"));
+	case 4: return(F("Abril"));
+	case 5: return(F("Maio"));
+	case 6: return(F("Junho"));
+	case 7: return(F("Julho"));
+	case 8: return(F("Agosto"));
+	case 9: return(F("Setembro"));
+	case 10: return(F("Outubro"));
+	case 11: return(F("Novembro"));
+	case 12: return(F("Dezembro"));
+	default: return(F("?"));
 	}
 };

@@ -26,13 +26,14 @@ GPIO pins -> SDA: 21; SCL: 22
 #define SENSORS_PRESSURE_SEALEVELHPA      (1013.25F)   /**< Average sea level pressure is 1013.25 hPa */
 
 // mqtt receiver function
-void ubidots_callback(char* topic, byte* payload, unsigned int length) {
-	Serial.print("\nMensagem recebida [");
-	Serial.print(topic);
-	Serial.print("] ");
-	for (int i = 0; i<length; i++) {
-		Serial.print((char)payload[i]);
-	}
+void ubidots_callback(char* topic, byte* payload, unsigned int length) 
+{
+	//utilizar mensagem de debug.print("\nMensagem recebida [");
+	//utilizar mensagem de debug.print(topic);
+	//utilizar mensagem de debug.print("] ");
+	//for (int i = 0; i<length; i++) {
+	//	utilizar mensagem de debug.print((char)payload[i]);
+	//}
 }
 
 cremaSensorClass::cremaSensorClass()
@@ -64,8 +65,8 @@ cremaSensorClass::cremaSensorClass()
 bool cremaSensorClass::init()
 {
 	// inicialização dos sensores
-	if (!(working[csLuminosidade] = _luxSensor.begin())) {
-		Serial.println("\nLux\n++++++++++++++++++++++\nRestating ESP32\n++++++++++++++++++++++");
+	if (!(working[csLuminosidade] = _luxSensor.begin())) 
+	{
 		return false;
 	}
 
@@ -118,8 +119,6 @@ void cremaSensorClass::publishHTTP(const cremaSensorsId first = csLuminosidade, 
 	char _str_lat[35];             // Space to store latitude value
 	char _str_lng[35];             // Space to store longitude value
 
-	String _httpResponse;
-
 	digitalWrite(_PIN_LED_UPLOAD_SENSOR_VALUES, HIGH);
 
 	sprintf(_topic, "%s%s%s?token=%s", _mqttBroker, "/api/v1.6/devices/", DEVICE_LABEL, TOKEN);
@@ -160,27 +159,14 @@ void cremaSensorClass::publishHTTP(const cremaSensorsId first = csLuminosidade, 
 	}
 	sprintf(_payload, "%s%s", _payload, "}");
 
-	//Serial.print("payload=");
-	//Serial.println(_payload);
-
 	bool b = _http.begin(_topic);
 	_http.addHeader("Content-Type", "application/json");             //Specify content-type header
 	int httpResponseCode = _http.POST(_payload);   //Send the actual POST request
 
-	if (httpResponseCode > 0) {
-		_httpResponse = _http.getString();                       //Get the response to the request
-		Serial.print("HTTP return code: ");
-		Serial.print(httpResponseCode);   //Print return code
-		Serial.printf("  [JSON size: %d]\n", _httpResponse.length());
-		//Serial.println(_httpResponse);
-	}
-	else {
-		Serial.print("Error on sending POST: ");
-		Serial.println(httpResponseCode);
-	}
-	_http.end();  //Free resources
-
+//#if (_VMDEBUG == 1)
+	if (httpResponseCode > 0) 
 	{
+		String _httpResponse = _http.getString();                       //Get the response to the request
 		DynamicJsonBuffer  jsonBuffer(512);
 		JsonObject& root = jsonBuffer.parseObject(_httpResponse.c_str());
 		if (root.success())
@@ -189,20 +175,13 @@ void cremaSensorClass::publishHTTP(const cremaSensorsId first = csLuminosidade, 
 			{
 				eCurrent = (cremaSensorsId)i;
 				int rtnHttpPost = root[Labels[eCurrent]][0]["status_code"];
-				Serial.printf("%s = %.*f       [%d]", Labels[eCurrent], Decimals[eCurrent], Values[eCurrent], rtnHttpPost);
-				if (rtnHttpPost = 201)
-				{
-					Serial.println(" ok!");
-				}
-				else
-				{
-					Serial.println(" ERRO!");
-				}
 			}
 		}
 	}
 	displayGPSInfo();
+//#endif  //DEBUG
 
+	_http.end();  //Free resources
 	digitalWrite(_PIN_LED_UPLOAD_SENSOR_VALUES, LOW);
 }
 
@@ -213,21 +192,13 @@ void cremaSensorClass::readGPS()
 	// se após 30 leituras ainda não encontrou há tradução correta da String, zera a serial. {em TESTE}
 	if (_gpsReadesWithError++ > 20)
 	{
-		Serial.printf("\n~~~~~~~~~~~~\nFlushing Serial_GPS\n");
 		_gpsReadesWithError = 0;
 		Serial_GPS.flush();
 	}
 
-	//Serial.printf("\n_readGPS: Serial_GPS.available()\n");
 	while (Serial_GPS.available() > 0)
 	{
 		c = Serial_GPS.read();
-		//if (char(c) == '$') 
-		//{
-		//	Serial.println();
-		//}
-		//Serial.print(char(c));
-
 		if (_gps.encode(c) && _gps.location.isValid())
 		{
 			// http://forest-gis.com/2018/01/acuracia-gps-o-que-sao-pdop-hdop-gdop-multi-caminho-e-outros.html/
@@ -272,77 +243,15 @@ void cremaSensorClass::_saveGPS()
 
 void cremaSensorClass::displayGPSInfo()
 {
-	//Mostra informacoes no Serial Monitor
-	Serial.print(F("\nLocation: "));
-	if (_gps.location.isValid())
-	{
-		Serial.print(_gps.location.lat(), 6); //latitude
-		Serial.print(F(","));
-		Serial.print(_gps.location.lng(), 6); //longitude
-	}
-	else
-	{
-		Serial.print(F("INVALID"));
-	}
+	byte l; // Mostra Localização
 
-	Serial.print(F("  Date/Time: "));
-	if (_gps.date.isValid())
-	{
-		Serial.print(_gps.date.day()); //dia
-		Serial.print(F("/"));
-		Serial.print(_gps.date.month()); //mes
-		Serial.print(F("/"));
-		Serial.print(_gps.date.year()); //ano
-	}
-	else
-	{
-		Serial.print(F("INVALID"));
-	}
+	byte d;// Mostra Data do GPS
+	byte d1;
 
-	Serial.print(F(" "));
-
-	if (_gps.time.isValid())
-	{
-		if (_gps.time.hour() < 10) Serial.print(F("0"));
-		Serial.print(_gps.time.hour()); //hora
-		Serial.print(F(":"));
-		if (_gps.time.minute() < 10) Serial.print(F("0"));
-		Serial.print(_gps.time.minute()); //minuto
-		Serial.print(F(":"));
-		if (_gps.time.second() < 10) Serial.print(F("0"));
-		Serial.print(_gps.time.second()); //segundo
-		Serial.print(F("."));
-		if (_gps.time.centisecond() < 10) Serial.print(F("0"));
-		Serial.print(_gps.time.centisecond());
-	}
-	else
-	{
-		Serial.print(F("INVALID"));
-	}
-
-	Serial.print("\n[HDOP: ");
-	Serial.print(_gps.hdop.value());
-	Serial.print("]");
-
-	Serial.print("\n[Sat: ");
-	Serial.print(_gps.satellites.value());
-	Serial.print("]");
-
-	Serial.print("\n[Alt: ");
-	Serial.print(_gps.altitude.meters());
-	Serial.print("]");
-
-	Serial.print("\n[Age: ");
-	Serial.print(_gps.location.age());
-	Serial.print("]");
-
-	Serial.print("\n[Updated: ");
-	Serial.print(_gps.location.isUpdated());
-	Serial.print("]");
-
-	Serial.print("\n[Valid: ");
-	Serial.print(_gps.location.isValid());
-	Serial.print("]");
+	byte h;// Mostra Hora do GPS
+	byte h1;
+		
+	byte p;// Mostra parâmetros do sinal
 }
 
 float cremaSensorClass::_getUV()
@@ -351,8 +260,8 @@ float cremaSensorClass::_getUV()
 	//int uvLevelRef = _average_UV_AnalogRead(_CREMA_UV_PIN_REF);
 	//float outputVoltage = 3.3 / uvLevelRef * uvLevel;
 
-	//Serial.print("outputVoltage=");
-	//Serial.print(outputVoltage);
+	//utilizar mensagem de debug.print("outputVoltage=");
+	//utilizar mensagem de debug.print(outputVoltage);
 
 	//return _mapfloat_UV_Calc(outputVoltage, 0.99, 2.9, 0.0, 15.0);
 }
@@ -365,21 +274,21 @@ int cremaSensorClass::_average_UV_AnalogRead(gpio_num_t pin)
 	unsigned int runningValue = 0;
 	unsigned int r;
 
-	//Serial.print("\n--------------------------\nPino: ");
-	//Serial.println(pin);
+	//utilizar mensagem de debug.print("\n--------------------------\nPino: ");
+	//utilizar mensagem de debug.println(pin);
 	for (int x = 0; x < numberOfReadings; x++) {
 		r = analogRead(pin);
 		runningValue += r;
-		//Serial.print("[Average] Leitura ");
-		//Serial.print(x);
-		//Serial.print("=");
-		//Serial.println(r);
+		//utilizar mensagem de debug.print("[Average] Leitura ");
+		//utilizar mensagem de debug.print(x);
+		//utilizar mensagem de debug.print("=");
+		//utilizar mensagem de debug.println(r);
 	}
-	//Serial.print("Total=");
-	//Serial.println(runningValue);
+	//utilizar mensagem de debug.print("Total=");
+	//utilizar mensagem de debug.println(runningValue);
 	runningValue /= numberOfReadings;
-	//Serial.print("Media=");
-	//Serial.println(runningValue);
+	//utilizar mensagem de debug.print("Media=");
+	//utilizar mensagem de debug.println(runningValue);
 
 	return(runningValue);
 
