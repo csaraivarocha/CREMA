@@ -14,3 +14,28 @@
 #define _ERR_SENSOR_GPS_POOR_PRECISION (_ERR_SENSOR - 4)
 
 #define _ERR_NOT_CONTROLED_RESTART     (_ERR_SENSOR - 10)
+/*
+typedef enum cremaErrorId {
+	ceNoError,
+	ceSensorRead,
+	ceSensorInit,
+	ceGPS_PoorSignal,
+	ceGPS_PoorPrecision,
+	ceUncrontrolledRestart,
+	ceCount
+};
+
+struct cremaErrorDef
+{
+	int code;
+	char description[30];
+};
+
+const cremaErrorDef cremaErrors[ceCount] = {
+{ _ERR_NOERROR, "No error"},
+{_ERR_SENSOR_READ, "Sensor read"},
+{_ERR_SENSOR_INIT, "Sensor initialization"},
+{_ERR_SENSOR_GPS_POOR_SIGNAL, "Poor GPS signal"},
+{_ERR_SENSOR_GPS_POOR_PRECISION, "Poor GPS precision"},
+{_ERR_NOT_CONTROLED_RESTART, "Uncontrolled restarted"} };
+*/

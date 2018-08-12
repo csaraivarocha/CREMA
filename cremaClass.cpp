@@ -3,9 +3,11 @@
 // 
 
 #include "cremaClass.h"
+
+
 cremaClass::cremaClass()
 {
-	Serial.begin(115200);
+	//Serial.begin(115200);
 
 	visor = new cremaVisorClass();
 	config = new cremaConfigClass();
@@ -44,29 +46,21 @@ void cremaClass::init()
 // esta função é chamada somente uma vês, no início do sistema, quando cria a classe cremaClass.
 void cremaClass::treatLastError()
 {
-	Serial.printf("Treating last error: %d\n", config->Values[ccLastError].toInt());
-
-	// maior que 4 indica conteúdo inválido, pois a quantidade maior de caracteres é 4 (-999)
-	if (config->Values[ccLastError].length() > 4)
+	if (config->Values[ccLastError].length() > 4) // maior que 4 indica conteúdo inválido, pois a quantidade maior de caracteres é 4 (-999)
 	{
-		Serial.println(F("Invalid last error! (length > 4)\n"));
 		config->setLastError(_ERR_NOERROR);
 	}
 	else if (config->Values[ccLastError].toInt() == _ERR_SENSOR_READ)
 	{
-		Serial.println(F("Sensor reading error. Wait 5 seconds to inicialize...\n"));
 		delay(5000);
 		// necessário fazer upload de novo valor para gerar trigger de evento no Ubidots
 		_uploadErrorLog(_ERR_NOERROR, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
 		config->setLastError(_ERR_NOERROR);
 	}
-	else if (config->Values[ccLastError].toInt() == _ERR_NOERROR)
+	else if (config->Values[ccLastError].toInt() == _ERR_NOERROR)  // uncrotoled restarted
 	{
-		Serial.println(F("Uncrontoled restart.\n"));
 		_uploadErrorLog(_ERR_NOT_CONTROLED_RESTART, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_DONT_SAVE_CONFIG);
 	}
-
-	Serial.printf("\nNew error setted: %s\n", config->Values[ccLastError].c_str());
 }
 
 void cremaClass::ShowSensorValues()
@@ -135,7 +129,8 @@ void cremaClass::ReadSensors()
 void cremaClass::_uploadToCloud(const cremaSensorsId first = csLuminosidade, const cremaSensorsId last = csUltraVioleta)
 {
 	//todo: verificação de conexão antes da chamada
-	if (!WiFi.isConnected()) {
+	if (!WiFi.isConnected()) 
+	{
 		config->setForceConfig(false);     // se necessário iniciar webServer, informar apenas dados de WiFi
 		_wifi_autoConnect();
 	}
@@ -144,21 +139,15 @@ void cremaClass::_uploadToCloud(const cremaSensorsId first = csLuminosidade, con
 }
 
 //callback que indica que o ESP entrou no modo AP
-void cremaClass::__wifi_configModeCallback(WiFiManager *myWiFiManager) {
-	//  Serial.println("Entered config mode");
-	Serial.println("Entrou no modo de configuracao");
-	Serial.println(WiFi.softAPIP().toString()); //imprime o IP do AP
-	Serial.println(myWiFiManager->getConfigPortalSSID()); //imprime o SSID criado da rede
-
+void cremaClass::__wifi_configModeCallback(WiFiManager *myWiFiManager) 
+{
 	cremaClass::__displayConfigMode();
 	cremaClass::__webServerConfigSaved = false;
 }
 
 //callback que indica que salvou as configurações de rede
-void cremaClass::__wifi_saveConfigCallback() {
-	Serial.println("Configuracao salva");
-	Serial.println(WiFi.softAPIP().toString()); //imprime o IP do AP
-	
+void cremaClass::__wifi_saveConfigCallback() 
+{
 	cremaClass::__webServerConfigSaved = true;
 }
 
@@ -269,8 +258,6 @@ bool cremaClass::_wifi_autoConnect()
 	}
 	else
 	{
-		Serial.print("\nConectando ao ultimo WiFi\n");
-
 		visor->clearLine(2);
 		visor->write("Conectando");
 		visor->clearLine(3);
@@ -334,15 +321,6 @@ void cremaClass::_testGPSSignal()
 	}
 }
 
- void cremaClass::_sayDate()
-{
-	Serial.print("\n");
-	Serial.print(time->strDateTimeExtenso());
-	Serial.print("\n");
-}
-
-
-
  //void __uploadSensorValues(void *parms)
  //{
 	//IoT.publishHTTP(sensor, _IoT_Update_IniSensor, _IoT_Update_FimSensor);
@@ -352,16 +330,14 @@ void cremaClass::_testGPSSignal()
 
 void cremaClass::UploadSensorValues()
 {
-	if (time->IsTimeToAction(caUploadSensorsValues)) {
-		_sayDate();
-		{
-			_uploadToCloud(_IoT_Update_IniSensor, _IoT_Update_FimSensor);
-			// TODO Ler sensor em outra task do processador
-			// https://www.dobitaobyte.com.br/selecionar-uma-cpu-para-executar-tasks-com-esp32/
-			//xTaskHandle * taskUploadSensorValue;
-			//xTaskCreatePinnedToCore(&__uploadSensorValues, "UploadSensorValues", 2048, NULL, 1, taskUploadSensorValue, 1);
-			//Serial.printf("{created task to upload: %d.", taskUploadSensorValue);
-		}
+	if (time->IsTimeToAction(caUploadSensorsValues)) 
+	{
+		_uploadToCloud(_IoT_Update_IniSensor, _IoT_Update_FimSensor);
+		// TODO Ler sensor em outra task do processador
+		// https://www.dobitaobyte.com.br/selecionar-uma-cpu-para-executar-tasks-com-esp32/
+		//xTaskHandle * taskUploadSensorValue;
+		//xTaskCreatePinnedToCore(&__uploadSensorValues, "UploadSensorValues", 2048, NULL, 1, taskUploadSensorValue, 1);
+		// utilizar mensagem de debug =printf("{created task to upload: %d.", taskUploadSensorValue);
 	}
 }
 
