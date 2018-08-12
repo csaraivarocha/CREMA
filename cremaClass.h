@@ -52,8 +52,8 @@ protected:  // wifi
 	bool _wifi_autoConnect();
 	void _wifi_startWebServer();
 protected:  // cloud
-	void _uploadErrorLog(const int error, const bool restart, const bool saveConfig);
-	void _uploadToCloud(const cremaSensorsId first, const cremaSensorsId last);
+	void _uploadErrorLog(const cremaErrorId error, const bool restart, const bool saveConfig);
+	void _uploadToCloud(const cremaSensorsId first, const cremaSensorsId last, const cremaErroDescription desc = "");
 protected:  
 	bool _whatShow = true;
 	bool _whatUpload = true;

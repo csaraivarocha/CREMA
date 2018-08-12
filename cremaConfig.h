@@ -65,7 +65,7 @@ public:
 	bool getConfigOk();            // se a configuração está feita e correta
 	void setForceConfig(const bool set);
 	bool getForceConfig();        // para forçar nova leitura de configuração
-	void setLastError(const int error);
+	void setLastError(const cremaErrorId error);
 };
 
 

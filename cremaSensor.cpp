@@ -74,8 +74,8 @@ bool cremaSensorClass::init()
 
 	gpsData.age = 0;
 	gpsData.HDOP = 0;
-	gpsData.satellites = 0;
-	gpsData.altitude = 0;
+	gpsData.satellites = -5000;
+	gpsData.altitude = -5000;
 	gpsData.updated = false;
 	gpsData.valid = false;
 	gpsData.lat = 0;
@@ -106,7 +106,7 @@ bool cremaSensorClass::readSensors()
 	return !(abs(Values[csTemperatura]) > 50);
 }
 
-void cremaSensorClass::publishHTTP(const cremaSensorsId first = csLuminosidade, const cremaSensorsId last = csUltraVioleta)
+void cremaSensorClass::publishHTTP(const cremaSensorsId first = csLuminosidade, const cremaSensorsId last = csUltraVioleta, const cremaErroDescription desc)
 {
 	HTTPClient _http;
 	const char _mqttBroker[] = "http://things.ubidots.com";
@@ -137,12 +137,27 @@ void cremaSensorClass::publishHTTP(const cremaSensorsId first = csLuminosidade, 
 
 		// {"temperatura":
 		sprintf(_payload, "%s\"%s\":", _payload, Labels[eCurrent]);
-		if (gpsData.valid)
+		if ((gpsData.valid) || (desc != ""))
 		{
+			bool gps_ok = (gpsData.valid && gpsData.lat != -5000);
 			// ficará assim: {"temperatura":{"value":10,"context":{"lat":-19.648461,"lng":-43.901583}}
 			dtostrf(gpsData.lat, 10, 6, _str_lat);
 			dtostrf(gpsData.lng, 10, 6, _str_lng);
-			sprintf(_payload, "%s{\"value\":%s,\"context\":{\"lat\":%s,\"lng\":%s}}", _payload, _str_sensor_value, _str_lat, _str_lng);
+
+			if ((gps_ok) && (desc != ""))
+			{
+				//sprintf(_payload, "%s{\"value\":%s,\"context\":{\"lat\":%s,\"lng\":%s}}", _payload, _str_sensor_value, _str_lat, _str_lng);
+				sprintf(_payload, "%s{\"value\":%s,\"context\":{\"lat\":%s,\"lng\":%s,\"desc\":\"%s\"}}", _payload, _str_sensor_value, _str_lat, _str_lng, desc);
+			}
+			if ((gps_ok) && (desc == ""))
+			{
+				sprintf(_payload, "%s{\"value\":%s,\"context\":{\"lat\":%s,\"lng\":%s}}", _payload, _str_sensor_value, _str_lat, _str_lng);
+			}
+			if ((!gps_ok) && (desc != ""))
+			{
+				sprintf(_payload, "%s{\"value\":%s,\"context\":{\"desc\":\"%s\"}}", _payload, _str_sensor_value, desc);
+			}
+
 		}
 		else
 		{
@@ -163,7 +178,7 @@ void cremaSensorClass::publishHTTP(const cremaSensorsId first = csLuminosidade, 
 	_http.addHeader("Content-Type", "application/json");             //Specify content-type header
 	int httpResponseCode = _http.POST(_payload);   //Send the actual POST request
 
-//#if (_VMDEBUG == 1)
+//#if (_VMDEBUG == 1)  // TODO: verificar como mensagem de debug não aparece
 	if (httpResponseCode > 0) 
 	{
 		String _httpResponse = _http.getString();                       //Get the response to the request
