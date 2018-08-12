@@ -183,9 +183,9 @@ bool cremaConfigClass::getForceConfig()
 	return _forceConfig;
 }
 
-void cremaConfigClass::setLastError(const int error)
+void cremaConfigClass::setLastError(const cremaErrorId error)
 {
 	Values[ccLastError] = F("");
-	Values[ccLastError].concat(error);
+	Values[ccLastError].concat(cremaErrors[error].code);
 	saveConfig();
 }

@@ -80,7 +80,7 @@ public:
 	cremaSensorClass();
 	bool init();
 	bool readSensors();
-	void publishHTTP(const cremaSensorsId first, const cremaSensorsId last);
+	void publishHTTP(const cremaSensorsId first, const cremaSensorsId last, const cremaErroDescription desc = "");
 	bool working[csCount] = { true,true,true,true,true,true,true,true };
 	byte Decimals[csCount] = { 0,1,1,0,0,3,0 };
 	char* Names[csCount] = { "Luminosidade", "Umidade", "Temperatura", "Pressão", "Altitude", "Intensidade Ultra violeta", "memory", "log"};

@@ -7,8 +7,6 @@
 
 cremaClass::cremaClass()
 {
-	//Serial.begin(115200);
-
 	visor = new cremaVisorClass();
 	config = new cremaConfigClass();
 	sensor = new cremaSensorClass();
@@ -23,7 +21,7 @@ cremaClass::cremaClass()
 	treatLastError();
 	if (!sensor->init())
 	{
-		_uploadErrorLog(_ERR_SENSOR_INIT, _ERR_UPLOAD_LOG_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
+		_uploadErrorLog(ceSensorInit, _ERR_UPLOAD_LOG_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
 	}
 
 	visor->clear();
@@ -48,18 +46,22 @@ void cremaClass::treatLastError()
 {
 	if (config->Values[ccLastError].length() > 4) // maior que 4 indica conteúdo inválido, pois a quantidade maior de caracteres é 4 (-999)
 	{
-		config->setLastError(_ERR_NOERROR);
+		config->setLastError(ceNoError);
 	}
 	else if (config->Values[ccLastError].toInt() == _ERR_SENSOR_READ)
 	{
 		delay(5000);
 		// necessário fazer upload de novo valor para gerar trigger de evento no Ubidots
-		_uploadErrorLog(_ERR_NOERROR, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
-		config->setLastError(_ERR_NOERROR);
+		_uploadErrorLog(ceNoError, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
 	}
 	else if (config->Values[ccLastError].toInt() == _ERR_NOERROR)  // uncrotoled restarted
 	{
-		_uploadErrorLog(_ERR_NOT_CONTROLED_RESTART, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_DONT_SAVE_CONFIG);
+		_uploadErrorLog(ceUncrontrolledRestart, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_DONT_SAVE_CONFIG);
+		_uploadErrorLog(ceNoError, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
+	}
+	else
+	{
+		_uploadErrorLog(ceNoError, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
 	}
 }
 
@@ -69,29 +71,29 @@ void cremaClass::ShowSensorValues()
 	
 		visor->clearLine(0);
 		visor->write(sensor->Values[csTemperatura], sensor->Decimals[csTemperatura]);
-		visor->write("C    ");
+		visor->write(F("C    "));
 
 		visor->write(sensor->Values[csUmidade], sensor->Decimals[csUmidade]);
-		visor->write("%");
+		visor->write(F("%"));
 
 		if (_whatShow) {
 			visor->clearLine(2);
 			visor->write(sensor->Values[csPressao], sensor->Decimals[csPressao]);
-			visor->write("mP  ");
+			visor->write(F("mP  "));
 
 			visor->write(sensor->Values[csAltitude], sensor->Decimals[csAltitude]);
-			visor->write("m");
+			visor->write(F("m"));
 
 			visor->clearLine(3);
 		}
 		else {
 			visor->clearLine(2);
 			visor->write(sensor->Values[csLuminosidade], sensor->Decimals[csLuminosidade]);
-			visor->writeln(" luz");
+			visor->writeln(F(" luz"));
 
 			visor->clearLine(3);
 			visor->write(sensor->Values[csUltraVioleta], sensor->Decimals[csUltraVioleta]);
-			visor->write(" uv");
+			visor->write(F(" uv"));
 		}
 		_whatShow = !_whatShow;
 	}
@@ -109,8 +111,8 @@ void cremaClass::ShowDateTime()
 		}
 
 		visor->clearLine(5);
-		visor->write(time->strDMY("/", true, true, false));
-		visor->write(" - ");
+		visor->write(time->strDMY(F("/"), true, true, false));
+		visor->write(F(" - "));
 		visor->write(time->strHMS(_timeSep, true, true, false));
 	}
 }
@@ -121,12 +123,12 @@ void cremaClass::ReadSensors()
 	{
 		if (!sensor->readSensors())   // TODO: false se erro na leitura de sensores (06/08/2018: Temp > 50)
 		{
-			_uploadErrorLog(_ERR_SENSOR_READ, _ERR_UPLOAD_LOG_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
+			_uploadErrorLog(ceSensorRead, _ERR_UPLOAD_LOG_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
 		}
 	}
 }
 
-void cremaClass::_uploadToCloud(const cremaSensorsId first = csLuminosidade, const cremaSensorsId last = csUltraVioleta)
+void cremaClass::_uploadToCloud(const cremaSensorsId first = csLuminosidade, const cremaSensorsId last = csUltraVioleta, const cremaErroDescription desc)
 {
 	//todo: verificação de conexão antes da chamada
 	if (!WiFi.isConnected()) 
@@ -135,7 +137,7 @@ void cremaClass::_uploadToCloud(const cremaSensorsId first = csLuminosidade, con
 		_wifi_autoConnect();
 	}
 
-	sensor->publishHTTP(first, last);
+	sensor->publishHTTP(first, last, desc);
 }
 
 //callback que indica que o ESP entrou no modo AP
@@ -155,12 +157,12 @@ void cremaClass::__displayConfigMode()
 {
 	cremaVisorClass v;
 	
-	v.showMessage("_CONFIGURACAO_");
+	v.showMessage(F("_CONFIGURACAO_"));
 	v.clearLine(1);
-	v.clearLine(2); v.write("Conect. a rede");
-	v.clearLine(3); v.write("   \""); v.write(_CREMA_SSID_AP); v.write("\"");
-	v.clearLine(4); v.write("pelo computador");
-	v.clearLine(5); v.write("ou celular");
+	v.clearLine(2); v.write(F("Conect. a rede"));
+	v.clearLine(3); v.write(F("   \"")); v.write(_CREMA_SSID_AP); v.write(F("\""));
+	v.clearLine(4); v.write(F("pelo computador"));
+	v.clearLine(5); v.write(F("ou celular"));
 }
 
 void cremaClass::_initWiFi()
@@ -259,9 +261,9 @@ bool cremaClass::_wifi_autoConnect()
 	else
 	{
 		visor->clearLine(2);
-		visor->write("Conectando");
+		visor->write(F("Conectando"));
 		visor->clearLine(3);
-		visor->write("WiFi...");
+		visor->write(F("WiFi..."));
 
 		_wifiManager.autoConnect(_CREMA_SSID_AP, "");
 
@@ -280,14 +282,14 @@ void cremaClass::_wifi_startWebServer()
 	visor->clear();
 }
 
-void cremaClass::_uploadErrorLog(const int error, const bool restart, const bool saveConfig)
+void cremaClass::_uploadErrorLog(const cremaErrorId error, const bool restart, const bool saveConfig)
 {
-	sensor->Values[csLog] = error;                      // guarda valor do erro para subir para Ubidots
-	_uploadToCloud(csLog, csLog);
+	sensor->Values[csLog] = cremaErrors[error].code;                      // guarda valor do erro para subir para Ubidots
+	_uploadToCloud(csLog, csLog, cremaErrors[error].description);
 
 	if (saveConfig)
 	{
-		config->setLastError(sensor->Values[csLog]);   // guarda erro no arquivo do ESP32 localmente para ser tratado na reinicialização
+		config->setLastError(error);   // guarda erro no arquivo do ESP32 localmente para ser tratado na reinicialização
 	}
 
 	if (restart)
@@ -316,7 +318,7 @@ void cremaClass::_testGPSSignal()
 	{
 		if (!sensor->gpsData.valid)
 		{
-			_uploadErrorLog(_ERR_SENSOR_GPS_POOR_SIGNAL, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_DONT_SAVE_CONFIG);
+			_uploadErrorLog(ceGPS_PoorSignal, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_DONT_SAVE_CONFIG);
 		}
 	}
 }
