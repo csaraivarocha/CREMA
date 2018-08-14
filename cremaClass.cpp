@@ -277,7 +277,7 @@ bool cremaClass::_wifi_autoConnect()
 void cremaClass::_wifi_startWebServer()
 {
 	if (!_wifiManager.startConfigPortal(_CREMA_SSID_AP)) {
-		Restart();
+		Restart();  // todo: efetuar log em ubidots do erro
 	}
 	visor->clear();
 }

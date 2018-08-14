@@ -75,7 +75,12 @@ private:
 	TinyGPSPlus _gps;
 	bool _gpsOk();
 	void _saveGPS();
-	byte _gpsReadesWithError = 0;
+	byte _gpsReadsWithError = 0;
+
+#if (_VMDEBUG == 1)
+	void _displayGPSInfo();
+#endif
+
 public:
 	cremaSensorClass();
 	bool init();
@@ -86,7 +91,6 @@ public:
 	char* Names[csCount] = { "Luminosidade", "Umidade", "Temperatura", "Pressão", "Altitude", "Intensidade Ultra violeta", "memory", "log"};
 	char* Labels[csCount] = { "luminosidade", "umidade", "temperatura", "pressao", "altitude", "uv", "memory", "log" };
 	float Values[csCount];
-	void displayGPSInfo();
 	void readGPS();
 	cremaGPS gpsData;
 };

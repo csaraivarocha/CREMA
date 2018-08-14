@@ -137,7 +137,7 @@ void cremaSensorClass::publishHTTP(const cremaSensorsId first = csLuminosidade, 
 
 		// {"temperatura":
 		sprintf(_payload, "%s\"%s\":", _payload, Labels[eCurrent]);
-		if ((gpsData.valid) || (desc != ""))
+		if ((gpsData.valid) || (desc != ""))  // todo: ajustar informação de Lat e Lng na variável log.
 		{
 			bool gps_ok = (gpsData.valid && gpsData.lat != -5000);
 			// ficará assim: {"temperatura":{"value":10,"context":{"lat":-19.648461,"lng":-43.901583}}
@@ -178,7 +178,7 @@ void cremaSensorClass::publishHTTP(const cremaSensorsId first = csLuminosidade, 
 	_http.addHeader("Content-Type", "application/json");             //Specify content-type header
 	int httpResponseCode = _http.POST(_payload);   //Send the actual POST request
 
-//#if (_VMDEBUG == 1)  // TODO: verificar como mensagem de debug não aparece
+#if (_VMDEBUG == 1)
 	if (httpResponseCode > 0) 
 	{
 		String _httpResponse = _http.getString();                       //Get the response to the request
@@ -193,8 +193,8 @@ void cremaSensorClass::publishHTTP(const cremaSensorsId first = csLuminosidade, 
 			}
 		}
 	}
-	displayGPSInfo();
-//#endif  //DEBUG
+	_displayGPSInfo();
+#endif  //DEBUG
 
 	_http.end();  //Free resources
 	digitalWrite(_PIN_LED_UPLOAD_SENSOR_VALUES, LOW);
@@ -205,9 +205,9 @@ void cremaSensorClass::readGPS()
 	int c;
 
 	// se após 30 leituras ainda não encontrou há tradução correta da String, zera a serial. {em TESTE}
-	if (_gpsReadesWithError++ > 20)
+	if (_gpsReadsWithError++ > 20)
 	{
-		_gpsReadesWithError = 0;
+		_gpsReadsWithError = 0;
 		Serial_GPS.flush();
 	}
 
@@ -225,9 +225,9 @@ void cremaSensorClass::readGPS()
 			10 - 20	Fraco	Nível de confiança baixo.Considere descartar dados
 			>20	Ruim	Precisão muito baixa.Erros podem atingir 300 metros*/
 
-			//displayGPSInfo();
+			//_displayGPSInfo();
 			_saveGPS();
-			_gpsReadesWithError = 0;
+			_gpsReadsWithError = 0;
 
 			break;
 		}
@@ -256,7 +256,8 @@ void cremaSensorClass::_saveGPS()
 	}
 }
 
-void cremaSensorClass::displayGPSInfo()
+#if (_VMDEBUG == 1)
+void cremaSensorClass::_displayGPSInfo()
 {
 	byte l; // Mostra Localização
 
@@ -268,6 +269,7 @@ void cremaSensorClass::displayGPSInfo()
 		
 	byte p;// Mostra parâmetros do sinal
 }
+#endif
 
 float cremaSensorClass::_getUV()
 {
