@@ -77,9 +77,9 @@ private:
 	void _saveGPS();
 	byte _gpsReadsWithError = 0;
 
-#if (_VMDEBUG == 1)
+#if defined(_DEBUG)
 	void _displayGPSInfo();
-#endif
+#endif // _CREMA_DEBUG
 
 public:
 	cremaSensorClass();

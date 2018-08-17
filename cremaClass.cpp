@@ -11,22 +11,6 @@ cremaClass::cremaClass()
 	config = new cremaConfigClass();
 	sensor = new cremaSensorClass();
 	time = new cremaTimeClass();
-
-	visor->showMessage(F("Inicializando"));
-
-	_initWiFi();
-
-	config->init();        // config.init tem que ser antes. para ler as configurações do arquivo
-	_wifi_autoConnect();
-	treatLastError();
-	if (!sensor->init())
-	{
-		_uploadErrorLog(ceSensorInit, _ERR_UPLOAD_LOG_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
-	}
-
-	visor->clear();
-
-	Serial_GPS.flush();
 }
 
 cremaClass::~cremaClass()
@@ -39,6 +23,21 @@ cremaClass::~cremaClass()
 
 void cremaClass::init()
 {
+	visor->showMessage(F("Inicializando"));
+
+	config->init();        // config.init tem que ser antes. para ler as configurações do arquivo
+	
+	_initWiFi();
+	_wifi_autoConnect();
+	
+	if (!sensor->init())
+	{
+		_uploadErrorLog(ceSensorInit, _ERR_UPLOAD_LOG_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
+	}
+
+	visor->clear();
+
+	Serial_GPS.flush();
 }
 
 // esta função é chamada somente uma vês, no início do sistema, quando cria a classe cremaClass.
@@ -207,6 +206,7 @@ void cremaClass::_initWiFi()
 	//_wifiManager.setRemoveDuplicateAPs(false); //remover redes duplicadas (SSID iguais)
 	//_wifiManager.resetSettings();
 	_wifiManager.setConfigPortalTimeout(600); //timeout para o ESP nao ficar esperando para ser configurado para sempre
+	_wifiManager.setConnectTimeout(15);
 }
 
 bool cremaClass::_wifi_autoConnect()
@@ -334,6 +334,11 @@ void cremaClass::UploadSensorValues()
 {
 	if (time->IsTimeToAction(caUploadSensorsValues)) 
 	{
+
+#if defined(_DEBUG)
+		{byte a; } // comentário para configurar o breakpoint de exibição da data por extenso.
+#endif // _CREMA_DEBUG
+
 		_uploadToCloud(_IoT_Update_IniSensor, _IoT_Update_FimSensor);
 		// TODO Ler sensor em outra task do processador
 		// https://www.dobitaobyte.com.br/selecionar-uma-cpu-para-executar-tasks-com-esp32/

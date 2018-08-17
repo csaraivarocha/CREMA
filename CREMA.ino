@@ -2,7 +2,6 @@
 
 #define CREMA_TECNICAL_DEBUG_NO
 
-
 bool cremaClass::__webServerConfigSaved = false;
 
 
@@ -15,6 +14,7 @@ void setup()
 
 	crema = new cremaClass();
 	crema->init();
+	crema->treatLastError();
 }
 
 void loop()

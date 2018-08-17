@@ -60,6 +60,15 @@ cremaSensorClass::cremaSensorClass()
 	// parametrização do sensor DHT (temperatura e umidade)
 	//pinMode(_CREMA_DHT_PIN, INPUT);
 	//adcAttachPin(_CREMA_DHT_PIN);
+
+	gpsData.age = 0;
+	gpsData.HDOP = 10000;    // este valor indica péssima precisão do GPS. Com isso, próximoas leituras serão salvas por inidicar precisão melhor
+	gpsData.satellites = -5000;
+	gpsData.altitude = -5000;
+	gpsData.updated = false;
+	gpsData.valid = false;
+	gpsData.lat = 0;
+	gpsData.lng = 0;
 }
 
 bool cremaSensorClass::init()
@@ -72,15 +81,6 @@ bool cremaSensorClass::init()
 
 	_bme.begin(0x76);
 
-	gpsData.age = 0;
-	gpsData.HDOP = 0;
-	gpsData.satellites = -5000;
-	gpsData.altitude = -5000;
-	gpsData.updated = false;
-	gpsData.valid = false;
-	gpsData.lat = 0;
-	gpsData.lng = 0;
-
 	return readSensors();
 }
 
@@ -88,19 +88,18 @@ bool cremaSensorClass::readSensors()
 {
 	digitalWrite(_PIN_LED_READ_SENSOR_VALUES, HIGH);
 
-	//readGPS();
 	Values[csLuminosidade] = _luxSensor.readLightLevel(true);
 	Values[csPressao] = _bme.readPressure();
-	if (!gpsData.valid)
-	{
-		Values[csAltitude] = _bme.readAltitude(SENSORS_PRESSURE_SEALEVELHPA);
-	}
+	//if (!gpsData.valid)
+	//{
+	//	Values[csAltitude] = _bme.readAltitude(SENSORS_PRESSURE_SEALEVELHPA);
+	//}
 	Values[csTemperatura] = _bme.readTemperature();
 	Values[csUmidade] = _bme.readHumidity();
 	Values[csMemory] = esp_get_free_heap_size();
 	Values[csLog] = millis() / 1000;
 	//Values[csUltraVioleta] = _getUV();
-
+	
 	digitalWrite(_PIN_LED_READ_SENSOR_VALUES, LOW);
 
 	return !(abs(Values[csTemperatura]) > 50);
@@ -126,6 +125,7 @@ void cremaSensorClass::publishHTTP(const cremaSensorsId first = csLuminosidade, 
 
 	for (int i = first; i <= last; i++)
 	{
+		char _context[2024];
 		eCurrent = (cremaSensorsId)i;
 
 		/* convert float value do str. 4 is mininum width, 2 is precision; float value is copied onto str_sensor*/
@@ -135,50 +135,49 @@ void cremaSensorClass::publishHTTP(const cremaSensorsId first = csLuminosidade, 
 		// inclui informação de GPS. como deve der a string
 		// {"temperatura":{"value":10,"context":{"lat":-19.648461,"lng":-43.901583}}}
 
-		// {"temperatura":
-		sprintf(_payload, "%s\"%s\":", _payload, Labels[eCurrent]);
-		if ((gpsData.valid) || (desc != ""))  // todo: ajustar informação de Lat e Lng na variável log.
+		// {"temperatura":{"value":23.4500
+		sprintf(_payload, "%s\"%s\":{\"value\":%s", _payload, Labels[eCurrent], _str_sensor_value);
+		sprintf(_context, "%s", ""); 
+
+		// se GPS está sincronizado, adiciona informação de localização
+		if (gpsData.valid)
 		{
-			bool gps_ok = (gpsData.valid && gpsData.lat != -5000);
-			// ficará assim: {"temperatura":{"value":10,"context":{"lat":-19.648461,"lng":-43.901583}}
-			dtostrf(gpsData.lat, 10, 6, _str_lat);
-			dtostrf(gpsData.lng, 10, 6, _str_lng);
-
-			if ((gps_ok) && (desc != ""))
-			{
-				//sprintf(_payload, "%s{\"value\":%s,\"context\":{\"lat\":%s,\"lng\":%s}}", _payload, _str_sensor_value, _str_lat, _str_lng);
-				sprintf(_payload, "%s{\"value\":%s,\"context\":{\"lat\":%s,\"lng\":%s,\"desc\":\"%s\"}}", _payload, _str_sensor_value, _str_lat, _str_lng, desc);
-			}
-			if ((gps_ok) && (desc == ""))
-			{
-				sprintf(_payload, "%s{\"value\":%s,\"context\":{\"lat\":%s,\"lng\":%s}}", _payload, _str_sensor_value, _str_lat, _str_lng);
-			}
-			if ((!gps_ok) && (desc != ""))
-			{
-				sprintf(_payload, "%s{\"value\":%s,\"context\":{\"desc\":\"%s\"}}", _payload, _str_sensor_value, desc);
-			}
-
+			// "lat":-19.648461,"lng":-43.901583
+			sprintf(_context, "%s\"lat\":%s,\"lng\":%s", _context, _str_lat, _str_lng);
 		}
-		else
+
+		// se há uma descrição específica para o upload, a inclui
+		if (desc != "")
 		{
-			// ficará assim: {"temperatura":23.4
-			sprintf(_payload, "%s%s", _payload, _str_sensor_value);
+			if (strlen(_context) > 1)
+			{
+				// "lat":-19.648461,"lng":-43.901583,
+				sprintf(_context, "%s,", _context);
+			}
+			// "lat":-19.648461,"lng":-43.901583,"desc":"Not controlled restart"
+			sprintf(_context, "%s\"desc\":\"%s\"", _context, desc);
+		}
+
+		if (strlen(_context) > 1)
+		{
+			// {"temperatura":{"value":23.4500,"context":{"lat":-19.648461,"lng":-43.901583,"desc":"Not controlled restart"}
+			sprintf(_payload, "%s,\"context\":{%s}}", _payload, _context);
 		}
 
 		// se não é a última variável, ou seja, se ainda há variáveis a incluir, 
 		// adiciona o separador de variáveis ','
 		if (i < last) {
-			sprintf(_payload, "%s%s", _payload, ",");
+			sprintf(_payload, "%s,", _payload);
 		}
 
 	}
-	sprintf(_payload, "%s%s", _payload, "}");
+	sprintf(_payload, "%s}", _payload);
 
 	bool b = _http.begin(_topic);
 	_http.addHeader("Content-Type", "application/json");             //Specify content-type header
 	int httpResponseCode = _http.POST(_payload);   //Send the actual POST request
 
-#if (_VMDEBUG == 1)
+#if defined(_DEBUG)
 	if (httpResponseCode > 0) 
 	{
 		String _httpResponse = _http.getString();                       //Get the response to the request
@@ -194,7 +193,7 @@ void cremaSensorClass::publishHTTP(const cremaSensorsId first = csLuminosidade, 
 		}
 	}
 	_displayGPSInfo();
-#endif  //DEBUG
+#endif  // _DEBUG
 
 	_http.end();  //Free resources
 	digitalWrite(_PIN_LED_UPLOAD_SENSOR_VALUES, LOW);
@@ -204,8 +203,8 @@ void cremaSensorClass::readGPS()
 {
 	int c;
 
-	// se após 30 leituras ainda não encontrou há tradução correta da String, zera a serial. {em TESTE}
-	if (_gpsReadsWithError++ > 20)
+	// se após 50 leituras ainda não encontrou há tradução correta da String, zera a serial. {em TESTE}
+	if (_gpsReadsWithError++ > 50)
 	{
 		_gpsReadsWithError = 0;
 		Serial_GPS.flush();
@@ -241,22 +240,22 @@ bool cremaSensorClass::_gpsOk()
 
 void cremaSensorClass::_saveGPS()
 {
-	gpsData.age = _gps.location.age();
-	gpsData.HDOP = _gps.hdop.value();
-	gpsData.satellites = _gps.satellites.value();
-	gpsData.altitude = _gps.altitude.meters();
-	gpsData.updated = _gps.location.isUpdated();
-	gpsData.valid = _gps.location.isValid();
-	gpsData.lat = _gps.location.lat();
-	gpsData.lng = _gps.location.lng();
-
-	if (_gpsOk())
+	if (_gps.hdop.value() < gpsData.HDOP)
 	{
+		gpsData.HDOP = _gps.hdop.value();
+		gpsData.age = _gps.location.age();
+		gpsData.satellites = _gps.satellites.value();
+		gpsData.altitude = _gps.altitude.meters();
+		gpsData.updated = _gps.location.isUpdated();
+		gpsData.valid = _gps.location.isValid();
+		gpsData.lat = _gps.location.lat();
+		gpsData.lng = _gps.location.lng();
+
 		Values[csAltitude] = gpsData.altitude;
 	}
 }
 
-#if (_VMDEBUG == 1)
+#if defined(_DEBUG)
 void cremaSensorClass::_displayGPSInfo()
 {
 	byte l; // Mostra Localização
@@ -269,7 +268,7 @@ void cremaSensorClass::_displayGPSInfo()
 		
 	byte p;// Mostra parâmetros do sinal
 }
-#endif
+#endif  // _CREMA_DEBUG
 
 float cremaSensorClass::_getUV()
 {
