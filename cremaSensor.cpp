@@ -161,8 +161,9 @@ void cremaSensorClass::publishHTTP(const cremaSensorsId first = csLuminosidade, 
 		if (strlen(_context) > 1)
 		{
 			// {"temperatura":{"value":23.4500,"context":{"lat":-19.648461,"lng":-43.901583,"desc":"Not controlled restart"}
-			sprintf(_payload, "%s,\"context\":{%s}}", _payload, _context);
+			sprintf(_payload, "%s,\"context\":{%s}", _payload, _context);
 		}
+		sprintf(_payload, "%s}", _payload);
 
 		// se não é a última variável, ou seja, se ainda há variáveis a incluir, 
 		// adiciona o separador de variáveis ','

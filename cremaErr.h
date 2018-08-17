@@ -46,6 +46,6 @@ const cremaErrorDef cremaErrors[ceCount] = {
 {_ERR_SENSOR_INIT, "Sensor initialization"},
 {_ERR_SENSOR_GPS_POOR_SIGNAL, "Poor GPS signal"},
 {_ERR_SENSOR_GPS_POOR_PRECISION, "Poor GPS precision"},
-{_ERR_NOT_CONTROLED_RESTART, "Not controlled restart"} };
+{_ERR_NOT_CONTROLED_RESTART, "Uncontrolled restart"} };
 
 #endif
