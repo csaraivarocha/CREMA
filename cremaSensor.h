@@ -26,6 +26,9 @@
 // GPS
 #include <HardwareSerial.h>    // GPS: fazer conexão com o módulo e efetuar leitura
 #include <TinyGPS++.h>         // GPS: para validar as strings lidas do módulo GPS
+#include "driver/periph_ctrl.h"
+#include "esp32-hal-i2c.h"
+
 
 // ubidots configs
 #define DEVICE_LABEL "esp32_bh"                    // Assig the device label
@@ -57,11 +60,12 @@ static HardwareSerial Serial_GPS(2);
 
 struct cremaGPS
 {
-	uint HDOP;
+	int32_t HDOP;
 	byte satellites;
 	uint altitude;
 	ulong age;
-	bool updated, valid;
+	bool updatedLocation, validLocation;
+	bool validAltitude;
 	double lat, lng;
 };
 
@@ -73,10 +77,8 @@ private:
 	float _getUV();
 	BH1750 _luxSensor;
 	TinyGPSPlus _gps;
-	bool _gpsOk();
 	void _saveGPS();
 	byte _gpsReadsWithError = 0;
-
 #if defined(_DEBUG)
 	void _displayGPSInfo();
 #endif // _CREMA_DEBUG
@@ -85,8 +87,7 @@ public:
 	cremaSensorClass();
 	bool init();
 	bool readSensors();
-	void publishHTTP(const cremaSensorsId first, const cremaSensorsId last, const cremaErroDescription desc = "");
-	bool working[csCount] = { true,true,true,true,true,true,true,true };
+	void publishHTTP(const cremaSensorsId first, const cremaSensorsId last, const cremaErrorDescription desc = "", const cremaSystemErrorDescription sysErrorMsg = "");
 	byte Decimals[csCount] = { 0,1,1,0,0,3,0 };
 	char* Names[csCount] = { "Luminosidade", "Umidade", "Temperatura", "Pressão", "Altitude", "Intensidade Ultra violeta", "memory", "log"};
 	char* Labels[csCount] = { "luminosidade", "umidade", "temperatura", "pressao", "altitude", "uv", "memory", "log" };
@@ -94,6 +95,13 @@ public:
 	void readGPS();
 	cremaGPS gpsData;
 };
+
+static void g_SetLastSystemError(const char * functionName, const char * errorMessage)
+{
+	cremaSystemErrorDescription _lastSystemError;
+	sprintf(_lastSystemError, "%s() (%d): %s", functionName, millis() / 1000, errorMessage);
+	throw _lastSystemError;
+}
 
 #endif
 

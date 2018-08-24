@@ -31,14 +31,14 @@ bool cremaConfigClass::readConfig()
 
 	if (!SPIFFS.exists(_CREMA_CFG_FILE))
 	{
-		//TODO: criar aquivo padrão  //utilizar mensagem de debug.println(F("> arquivo nao existe."));
+		//// TODO: criar aquivo padrão  //utilizar mensagem de debug.println(F("> arquivo nao existe."));
 	}
 	else
 	{
 		File configFile = SPIFFS.open(_CREMA_CFG_FILE);
 		if (!configFile)
 		{
-			//TODO: utilizar padrão  //utilizar mensagem de debug.println(F("> falha ao abrir para leitura."));
+			//// TODO: utilizar padrão  //utilizar mensagem de debug.println(F("> falha ao abrir para leitura."));
 		}
 		else
 		{
@@ -52,7 +52,7 @@ bool cremaConfigClass::readConfig()
 
 			if (!root.success())
 			{
-				// TODO: utilizar configuração padrão  // utilizar mensagem de debug.println(F("> conteudo invalido do arquivo."));
+				//// TODO: utilizar configuração padrão  // utilizar mensagem de debug.println(F("> conteudo invalido do arquivo."));
 			}
 			else
 			{
@@ -62,7 +62,7 @@ bool cremaConfigClass::readConfig()
 				for (i = 0; i < ccCount; i++)
 				{
 					cremaConfigId key = (cremaConfigId)i;
-					//TODO utilizar agrupamento no JSON
+					//// TODO utilizar agrupamento no JSON
 					//strcpy(Values[key], _decode(key, root[_group[key]][_nameKeys[key]] | _CREMA_CFG_INVALID_VALUE));
 					try
 					{
@@ -109,7 +109,7 @@ bool cremaConfigClass::saveConfig()
 
 	File configFile = SPIFFS.open(_CREMA_CFG_FILE, "w");
 	if (!configFile) {
-		// TODO: utilizar config default   // utilizar mensagem de debug.println(F("> falha ao abrir arquivo para escrita."));
+		//// TODO: utilizar config default   // utilizar mensagem de debug.println(F("> falha ao abrir arquivo para escrita."));
 	}
 	//json.printTo(Serial);
 	json.printTo(configFile);

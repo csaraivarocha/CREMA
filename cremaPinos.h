@@ -7,6 +7,8 @@
 
 //// Sensores 
 //I2C - RTC, luminosidade e BME280 (temperatura e pressao)
+
+//// TODO: Utilizar pinos 21 e 22 URGENTE!!!!
 #define _CREMA_I2C_SDA    GPIO_NUM_25
 #define _CREMA_I2C_SCL    GPIO_NUM_26
 // Ultravioleta
