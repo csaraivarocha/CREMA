@@ -42,7 +42,7 @@ public:
 	void setTime(uint8_t second, uint8_t minute, uint8_t hour, uint8_t dayOfWeek, uint8_t dayOfMonth, uint8_t month, uint8_t year);
 	void readTime();
 
-#if (_VMDEBUG == 1)
+#if defined(_DEBUG)
 	String strDateTimeExtenso(const bool lTime = true);
 	String NomeDiaDaSemana();
 	String NomeMes();

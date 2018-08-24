@@ -40,7 +40,7 @@ void cremaTimeClass::readTime()
 	DateTimeSaved = rtc.now();
 }
 
-#if (_VMDEBUG == 1)
+#if defined(_DEBUG)
 String cremaTimeClass::NomeDiaDaSemana()
 {
 	switch (DateTimeSaved.dayOfTheWeek()) {
@@ -109,7 +109,7 @@ String cremaTimeClass::strHMS(const String sep, const bool lHour, const bool lMi
 	return lt;
 }
 
-#if (_VMDEBUG == 1)
+#if defined(_DEBUG)
 String cremaTimeClass::strDateTimeExtenso(const bool lTime)
 {
 	String rtn = "";
@@ -154,7 +154,7 @@ bool cremaTimeClass::IsTimeToAction(cremaActions action, const bool showDot)
 	return false;
 }
 
-#if (_VMDEBUG == 1)
+#if defined(_DEBUG)
 String cremaTimeClass::NomeMes()
 {
 	switch (DateTimeSaved.month()) {

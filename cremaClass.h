@@ -34,6 +34,8 @@
 // https://github.com/tzapu/WiFiManager (ORIGINAL)
 #include <WiFiManager.h>   
 
+#include <rom/rtc.h>
+
 
 #define _CREMA_SSID_AP "CREMA"
 
@@ -52,13 +54,15 @@ protected:  // wifi
 	bool _wifi_autoConnect();
 	void _wifi_startWebServer();
 protected:  // cloud
-	void _uploadErrorLog(const cremaErrorId error, const bool restart, const bool saveConfig);
-	void _uploadToCloud(const cremaSensorsId first, const cremaSensorsId last, const cremaErroDescription desc = "");
-protected:  
+	void _uploadToCloud(const cremaSensorsId first, const cremaSensorsId last, const cremaErrorDescription desc = "", const cremaSystemErrorDescription sysErrorMsg = "");
+	void _uploadErrorLog(const cremaErrorId error, const bool restart, const bool saveConfig, const cremaSystemErrorDescription sysErrorMsg = "");
+protected:
 	bool _whatShow = true;
 	bool _whatUpload = true;
 	void _readGPS();
 	void _testGPSSignal();
+public:  // cloud
+	void uploadSystemHaltError(const cremaErrorId typeSystemHaltError, const cremaSystemErrorDescription sysErrorMsg);
 public:  // wifi static functions and variables
 	static void __wifi_configModeCallback(WiFiManager * myWiFiManager);  // callback function
 	static void __wifi_saveConfigCallback();  // callback function

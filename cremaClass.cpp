@@ -4,29 +4,12 @@
 
 #include "cremaClass.h"
 
-
 cremaClass::cremaClass()
 {
 	visor = new cremaVisorClass();
 	config = new cremaConfigClass();
 	sensor = new cremaSensorClass();
 	time = new cremaTimeClass();
-
-	visor->showMessage(F("Inicializando"));
-
-	_initWiFi();
-
-	config->init();        // config.init tem que ser antes. para ler as configurações do arquivo
-	_wifi_autoConnect();
-	treatLastError();
-	if (!sensor->init())
-	{
-		_uploadErrorLog(ceSensorInit, _ERR_UPLOAD_LOG_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
-	}
-
-	visor->clear();
-
-	Serial_GPS.flush();
 }
 
 cremaClass::~cremaClass()
@@ -39,11 +22,56 @@ cremaClass::~cremaClass()
 
 void cremaClass::init()
 {
+	visor->showMessage(F("Inicializando"));
+
+	config->init();        // config.init tem que ser antes. para ler as configurações do arquivo
+	
+	_initWiFi();
+	_wifi_autoConnect();
+	
+	if (!sensor->init())
+	{
+		_uploadErrorLog(ceSensorInit, _RESTART, _SAVE_CONFIG);
+	}
+
+	visor->clear();
+
+	Serial_GPS.flush();
 }
+
+char * get_reset_reason(RESET_REASON reason)
+{
+	char * rtn;
+
+	switch (reason)
+	{
+	case 1:  rtn = ("POWERON_RESET"); break;          /**<1,  Vbat power on reset*/
+	case 3:  rtn = ("SW_RESET"); break;               /**<3,  Software reset digital core*/
+	case 4:  rtn = ("OWDT_RESET"); break;             /**<4,  Legacy watch dog reset digital core*/
+	case 5:  rtn = ("DEEPSLEEP_RESET"); break;        /**<5,  Deep Sleep reset digital core*/
+	case 6:  rtn = ("SDIO_RESET"); break;             /**<6,  Reset by SLC module, reset digital core*/
+	case 7:  rtn = ("TG0WDT_SYS_RESET"); break;       /**<7,  Timer Group0 Watch dog reset digital core*/
+	case 8:  rtn = ("TG1WDT_SYS_RESET"); break;       /**<8,  Timer Group1 Watch dog reset digital core*/
+	case 9:  rtn = ("RTCWDT_SYS_RESET"); break;       /**<9,  RTC Watch dog Reset digital core*/
+	case 10: rtn = ("INTRUSION_RESET"); break;        /**<10, Instrusion tested to reset CPU*/
+	case 11: rtn = ("TGWDT_CPU_RESET"); break;        /**<11, Time Group reset CPU*/
+	case 12: rtn = ("SW_CPU_RESET"); break;           /**<12, Software reset CPU*/
+	case 13: rtn = ("RTCWDT_CPU_RESET"); break;       /**<13, RTC Watch dog Reset CPU*/
+	case 14: rtn = ("EXT_CPU_RESET"); break;          /**<14, for APP CPU, reseted by PRO CPU*/
+	case 15: rtn = ("RTCWDT_BROWN_OUT_RESET"); break; /**<15, Reset when the vdd voltage is not stable*/
+	case 16: rtn = ("RTCWDT_RTC_RESET"); break;       /**<16, RTC Watch dog reset digital core and rtc module*/
+	default: rtn = ("NO_MEAN");
+	}
+	return rtn;
+}
+
 
 // esta função é chamada somente uma vês, no início do sistema, quando cria a classe cremaClass.
 void cremaClass::treatLastError()
 {
+	cremaSystemErrorDescription _cpus_reset_reason;
+	sprintf(_cpus_reset_reason, "CPU0=%s / CPU1=%s", get_reset_reason(rtc_get_reset_reason(0)), get_reset_reason(rtc_get_reset_reason(1)));
+
 	if (config->Values[ccLastError].length() > 4) // maior que 4 indica conteúdo inválido, pois a quantidade maior de caracteres é 4 (-999)
 	{
 		config->setLastError(ceNoError);
@@ -52,16 +80,16 @@ void cremaClass::treatLastError()
 	{
 		delay(5000);
 		// necessário fazer upload de novo valor para gerar trigger de evento no Ubidots
-		_uploadErrorLog(ceNoError, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
+		_uploadErrorLog(ceNoError, _DONT_RESTART, _SAVE_CONFIG, _cpus_reset_reason);
 	}
 	else if (config->Values[ccLastError].toInt() == _ERR_NOERROR)  // uncrotoled restarted
 	{
-		_uploadErrorLog(ceUncrontrolledRestart, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_DONT_SAVE_CONFIG);
-		_uploadErrorLog(ceNoError, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
+		_uploadErrorLog(ceUncrontrolledRestart, _DONT_RESTART, _DONT_SAVE_CONFIG, _cpus_reset_reason);
+		_uploadErrorLog(ceNoError, _DONT_RESTART, _SAVE_CONFIG);
 	}
 	else
 	{
-		_uploadErrorLog(ceNoError, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
+		_uploadErrorLog(ceNoError, _DONT_RESTART, _SAVE_CONFIG);
 	}
 }
 
@@ -117,27 +145,57 @@ void cremaClass::ShowDateTime()
 	}
 }
 
+
 void cremaClass::ReadSensors()
 {
 	if (time->IsTimeToAction(caReadSensors))
 	{
-		if (!sensor->readSensors())   // TODO: false se erro na leitura de sensores (06/08/2018: Temp > 50)
+		//// TODO: melhorar identificação do erro 
+		if (!sensor->readSensors())   // false se erro na leitura de sensores (06/08/2018: Temp > 50)
 		{
-			_uploadErrorLog(ceSensorRead, _ERR_UPLOAD_LOG_RESTART, _ERR_UPLOAD_LOG_SAVE_CONFIG);
+			_uploadErrorLog(ceI2CError, _DONT_RESTART, _DONT_SAVE_CONFIG);
+			Wire.reset();
+			if (!sensor->readSensors())
+			{
+				_uploadErrorLog(ceSensorRead, _RESTART, _SAVE_CONFIG);
+			}
 		}
 	}
 }
 
-void cremaClass::_uploadToCloud(const cremaSensorsId first = csLuminosidade, const cremaSensorsId last = csUltraVioleta, const cremaErroDescription desc)
+void cremaClass::uploadSystemHaltError(const cremaErrorId typeSystemHaltError, const cremaSystemErrorDescription sysErrorMsg)
 {
-	//todo: verificação de conexão antes da chamada
+	cremaSystemErrorDescription _logMsg;
+	_uploadErrorLog(typeSystemHaltError, _RESTART, _SAVE_CONFIG, sysErrorMsg);
+}
+
+void cremaClass::_uploadErrorLog(const cremaErrorId error, const bool restart, const bool saveConfig, const cremaSystemErrorDescription sysErrorMsg)
+{
+	sensor->Values[csLog] = cremaErrors[error].code;                      // guarda valor do erro para subir para Ubidots
+	_uploadToCloud(csLog, csLog, cremaErrors[error].description, sysErrorMsg);
+
+	if (saveConfig)
+	{
+		config->setLastError(error);   // guarda erro no arquivo do ESP32 localmente para ser tratado na reinicialização
+	}
+
+	if (restart)
+	{
+		Restart();
+	}
+}
+
+void cremaClass::_uploadToCloud(const cremaSensorsId first = csLuminosidade, const cremaSensorsId last = csUltraVioleta, const cremaErrorDescription desc, const cremaSystemErrorDescription sysErrorMsg)
+{
+	//// TODO: verificação de conexão antes da chamada
 	if (!WiFi.isConnected()) 
 	{
 		config->setForceConfig(false);     // se necessário iniciar webServer, informar apenas dados de WiFi
-		_wifi_autoConnect();
+		//// TODO: se saiu e não está conectado, reiniciar e gravar LastErro em Config.
+		_wifi_autoConnect();  
 	}
 
-	sensor->publishHTTP(first, last, desc);
+	sensor->publishHTTP(first, last, desc, sysErrorMsg);
 }
 
 //callback que indica que o ESP entrou no modo AP
@@ -207,6 +265,7 @@ void cremaClass::_initWiFi()
 	//_wifiManager.setRemoveDuplicateAPs(false); //remover redes duplicadas (SSID iguais)
 	//_wifiManager.resetSettings();
 	_wifiManager.setConfigPortalTimeout(600); //timeout para o ESP nao ficar esperando para ser configurado para sempre
+	_wifiManager.setConnectTimeout(15);
 }
 
 bool cremaClass::_wifi_autoConnect()
@@ -234,8 +293,7 @@ bool cremaClass::_wifi_autoConnect()
 		}
 		_wifi_startWebServer();
 
-		// todo: utilizar variável global
-		if (__webServerConfigSaved)
+		if (cremaClass::__webServerConfigSaved)
 		{
 			for (size_t i = 0; i < ccCount; i++)
 			{
@@ -277,25 +335,9 @@ bool cremaClass::_wifi_autoConnect()
 void cremaClass::_wifi_startWebServer()
 {
 	if (!_wifiManager.startConfigPortal(_CREMA_SSID_AP)) {
-		Restart();  // todo: efetuar log em ubidots do erro
+		_uploadErrorLog(ceWiFiConfigError, _RESTART, _DONT_SAVE_CONFIG);
 	}
 	visor->clear();
-}
-
-void cremaClass::_uploadErrorLog(const cremaErrorId error, const bool restart, const bool saveConfig)
-{
-	sensor->Values[csLog] = cremaErrors[error].code;                      // guarda valor do erro para subir para Ubidots
-	_uploadToCloud(csLog, csLog, cremaErrors[error].description);
-
-	if (saveConfig)
-	{
-		config->setLastError(error);   // guarda erro no arquivo do ESP32 localmente para ser tratado na reinicialização
-	}
-
-	if (restart)
-	{
-		Restart();
-	}
 }
 
 void cremaClass::doGPS()
@@ -316,14 +358,18 @@ void cremaClass::_testGPSSignal()
 {
 	if (time->IsTimeToAction(caTestGPSSignal))
 	{
-		if (!sensor->gpsData.valid)
+		if (!sensor->gpsData.validLocation)
 		{
-			_uploadErrorLog(ceGPS_PoorSignal, _ERR_UPLOAD_LOG_DONT_RESTART, _ERR_UPLOAD_LOG_DONT_SAVE_CONFIG);
+			_uploadErrorLog(ceGPS_PoorSignal, _DONT_RESTART, _DONT_SAVE_CONFIG);
+		}
+		else if (!sensor->gpsData.validLocation)
+		{
+			_uploadErrorLog(ceGPS_AltitudeNotMatched, _DONT_RESTART, _DONT_SAVE_CONFIG);
 		}
 	}
 }
 
- //void __uploadSensorValues(void *parms)
+//void __uploadSensorValues(void *parms)
  //{
 	//IoT.publishHTTP(sensor, _IoT_Update_IniSensor, _IoT_Update_FimSensor);
 	//vTaskDelete(NULL);
@@ -334,8 +380,13 @@ void cremaClass::UploadSensorValues()
 {
 	if (time->IsTimeToAction(caUploadSensorsValues)) 
 	{
+
+#if defined(_DEBUG)
+		byte a; // comentário para configurar o breakpoint de exibição da data por extenso.
+#endif // _CREMA_DEBUG
+
 		_uploadToCloud(_IoT_Update_IniSensor, _IoT_Update_FimSensor);
-		// TODO Ler sensor em outra task do processador
+		//// TODO Ler sensor em outra task do processador
 		// https://www.dobitaobyte.com.br/selecionar-uma-cpu-para-executar-tasks-com-esp32/
 		//xTaskHandle * taskUploadSensorValue;
 		//xTaskCreatePinnedToCore(&__uploadSensorValues, "UploadSensorValues", 2048, NULL, 1, taskUploadSensorValue, 1);
@@ -348,3 +399,5 @@ void cremaClass::Restart()
 	//IoT.publishHTTP(sensor, csLog, csLog);  // upload é feito pela função uploadErrorLog()
 	esp_restart();
 }
+
+

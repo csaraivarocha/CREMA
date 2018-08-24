@@ -2,7 +2,6 @@
 
 #define CREMA_TECNICAL_DEBUG_NO
 
-
 bool cremaClass::__webServerConfigSaved = false;
 
 
@@ -13,15 +12,48 @@ void setup()
 	crema_I2C_config();
 #endif // CREMA_TECNICAL_DEBUG_YES
 
-	crema = new cremaClass();
-	crema->init();
+	try
+	{
+		crema = new cremaClass();
+		crema->init();
+		crema->treatLastError();
+	}
+	catch (const cremaSystemErrorDescription msg)
+	{
+		crema->uploadSystemHaltError(ceControlledSystemHalt, msg);
+	}
+	catch (const std::exception& e)
+	{
+		cremaSystemErrorDescription msg;
+		sprintf(msg, "%s", e.what());
+		crema->uploadSystemHaltError(ceUncontrolledSystemHalt, msg);
+	}
 }
 
 void loop()
 {
-	crema->ShowDateTime();
-	crema->doGPS();
-	crema->ReadSensors();
-	crema->ShowSensorValues();
-	crema->UploadSensorValues();
+	try
+	{
+		crema->ShowDateTime();
+		crema->doGPS();
+		crema->ReadSensors();
+		crema->ShowSensorValues();
+		crema->UploadSensorValues();
+		delayMicroseconds(100);  // testing if watchdog don't crash by interrupt time
+	}
+	catch (const cremaSystemErrorDescription msg)
+	{
+		crema->uploadSystemHaltError(ceControlledSystemHalt, msg);
+	}
+	catch (const std::exception& e)
+	{
+		cremaSystemErrorDescription msg;
+		sprintf(msg, "%s", e.what());
+		crema->uploadSystemHaltError(ceUncontrolledSystemHalt, msg);
+	}
+	catch (...)
+	{
+		crema->uploadSystemHaltError(ceUncontrolledSystemHalt, "<UNCRONTOLLED EXCEPTION");
+	}
 }
+
