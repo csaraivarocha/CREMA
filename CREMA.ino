@@ -39,7 +39,7 @@ void loop()
 		crema->ReadSensors();
 		crema->ShowSensorValues();
 		crema->UploadSensorValues();
-		delayMicroseconds(100);  // testing if watchdog don't crash by interrupt time
+		delayMicroseconds(100);  // testing if watchdog don't crash by interrupted time
 	}
 	catch (const cremaSystemErrorDescription msg)
 	{
