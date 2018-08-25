@@ -40,6 +40,7 @@ void cremaTimeClass::readTime()
 	DateTimeSaved = rtc.now();
 }
 
+#if defined(_DEBUG)
 String cremaTimeClass::NomeDiaDaSemana()
 {
 	switch (DateTimeSaved.dayOfTheWeek()) {
@@ -53,6 +54,7 @@ String cremaTimeClass::NomeDiaDaSemana()
 	default: return(F("?"));
 	}
 }
+#endif
 
 String cremaTimeClass::strDMY(const String sep, const bool lDay, const bool lMonth, const bool lYear)
 {
@@ -107,6 +109,7 @@ String cremaTimeClass::strHMS(const String sep, const bool lHour, const bool lMi
 	return lt;
 }
 
+#if defined(_DEBUG)
 String cremaTimeClass::strDateTimeExtenso(const bool lTime)
 {
 	String rtn = "";
@@ -131,6 +134,7 @@ String cremaTimeClass::strDateTimeExtenso(const bool lTime)
 	}
 	return rtn;
 }
+#endif
 
 bool cremaTimeClass::IsTimeToAction(cremaActions action, const bool showDot)
 {
@@ -150,6 +154,7 @@ bool cremaTimeClass::IsTimeToAction(cremaActions action, const bool showDot)
 	return false;
 }
 
+#if defined(_DEBUG)
 String cremaTimeClass::NomeMes()
 {
 	switch (DateTimeSaved.month()) {
@@ -167,4 +172,6 @@ String cremaTimeClass::NomeMes()
 	case 12: return(F("Dezembro"));
 	default: return(F("?"));
 	}
-};
+}
+#endif
+

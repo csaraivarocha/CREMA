@@ -41,12 +41,16 @@ public:
 	cremaTimeClass();
 	void setTime(uint8_t second, uint8_t minute, uint8_t hour, uint8_t dayOfWeek, uint8_t dayOfMonth, uint8_t month, uint8_t year);
 	void readTime();
+
+#if defined(_DEBUG)
+	String strDateTimeExtenso(const bool lTime = true);
 	String NomeDiaDaSemana();
 	String NomeMes();
+#endif
+
 	String strDMY(const String sep = "/", const bool lDay = true, const bool lMonth = true, const bool lYear = true);
 	String strHMS(const String sep = ":", const bool lHour = true, const bool lMinute = true, const bool lSecond = true);
 	DateTime DateTimeSaved;
-	String strDateTimeExtenso(const bool lTime = true);
 	bool IsTimeToAction(cremaActions action, const bool showDot = false);
 };
 
